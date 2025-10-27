@@ -10,6 +10,7 @@
   import CodeIcon from '~icons/lucide/code';
   import CodeXmlIcon from '~icons/lucide/code-xml';
   import FilePlusIcon from '~icons/lucide/file-plus';
+  import FootnoteIcon from '~icons/lucide/footnote';
   import FileUpIcon from '~icons/lucide/file-up';
   import GalleryVerticalEndIcon from '~icons/lucide/gallery-vertical-end';
   import ImageIcon from '~icons/lucide/image';
@@ -262,6 +263,17 @@
       label="HTML"
       onclick={() => {
         editor?.current.chain().focus().setHtmlBlock().run();
+      }}
+      size={toolbarSize}
+    />
+
+    <ToolbarButton
+      disabled={!editor?.current.can().insertFootnote()}
+      icon={FootnoteIcon}
+      keys={['Mod', 'Alt', 'F']}
+      label="각주"
+      onclick={() => {
+        editor?.current.chain().focus().insertFootnote().run();
       }}
       size={toolbarSize}
     />

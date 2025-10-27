@@ -151,6 +151,26 @@
       "atom": true,
       "selectable": true,
       "parseDOM": [{ "tag": "node-view[data-node-view-type=page_break]" }]
+    },
+    "footnote_reference": {
+      "group": "inline",
+      "inline": true,
+      "atom": true,
+      "attrs": { "id": { "default": null }, "number": { "default": 1 } },
+      "parseDOM": [{ "tag": "sup[data-footnote-id]" }]
+    },
+    "footnote_item": {
+      "content": "paragraph+",
+      "defining": true,
+      "attrs": { "id": { "default": null }, "number": { "default": 1 } },
+      "parseDOM": [{ "tag": "li[data-footnote-id]" }]
+    },
+    "footnote_list": {
+      "group": "block",
+      "content": "footnote_item+",
+      "defining": true,
+      "attrs": { "nodeId": { "default": null } },
+      "parseDOM": [{ "tag": "ol[data-footnote-list]" }]
     }
   },
   "marks": {

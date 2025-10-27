@@ -89,6 +89,13 @@ export function convertInlineContentToTextRuns(
         });
       })
       .with({ type: 'hard_break' }, () => createHardBreak())
+      .with({ type: 'footnote_reference' }, (node) => {
+        return new TextRun({
+          text: (node.attrs?.number || 1).toString(),
+          superScript: true,
+          size: 18, // 9pt (half-points)
+        });
+      })
       .otherwise(() => new TextRun({ text: '' }));
   });
 }

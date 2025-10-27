@@ -9,6 +9,7 @@ import {
   convertEmbed,
   convertFile,
   convertFold,
+  convertFootnoteList,
   convertHorizontalRule,
   convertHtmlBlock,
   convertImage,
@@ -112,6 +113,7 @@ export function convertJSONContentToChildren(
   { fontMapper, pageLayout, imageCache, depth, baseIndent }: ConvertOptions = {},
 ): (Paragraph | Table)[] {
   const children: (Paragraph | Table)[] = [];
+  let footnoteList: JSONContent | null = null;
 
   if (!content.content) {
     return children;
@@ -127,6 +129,12 @@ export function convertJSONContentToChildren(
 
   const options = { fontMapper, bodyAttrs, pageLayout, imageCache, depth, baseIndent };
   for (const node of nodesToProcess) {
+    // Capture footnote_list but don't process it in the main loop
+    if (node.type === 'footnote_list') {
+      footnoteList = node;
+      continue;
+    }
+
     const converted = match(node.type)
       .with('paragraph', () => [convertParagraph(node, options)])
       .with('bullet_list', () => convertListToParagraphs(node, false, options))
@@ -149,6 +157,11 @@ export function convertJSONContentToChildren(
       .otherwise(() => []);
 
     children.push(...converted);
+  }
+
+  // Append footnote list at the end
+  if (footnoteList) {
+    children.push(...convertFootnoteList(footnoteList, options));
   }
 
   return children;

@@ -4,6 +4,7 @@ export * from './code';
 export * from './embed';
 export * from './file';
 export * from './fold';
+export * from './footnote';
 export * from './horizontal-rule';
 export * from './html';
 export * from './image';

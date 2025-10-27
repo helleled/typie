@@ -5,4 +5,7 @@ export const textSerializers: Record<string, TextSerializer> = {
   hard_break: () => '\n',
   code_block: () => '',
   html_block: () => '',
+  footnote_reference: ({ node }) => `[${node.attrs.number}]`,
+  footnote_item: ({ node }) => `[${node.attrs.number}] `,
+  footnote_list: () => '\n\n',
 };

@@ -2,6 +2,7 @@ import ChevronsDownUpIcon from '~icons/lucide/chevrons-down-up';
 import CodeIcon from '~icons/lucide/code';
 import CodeXmlIcon from '~icons/lucide/code-xml';
 import FileUpIcon from '~icons/lucide/file-up';
+import FootnotesIcon from '~icons/lucide/footnote';
 import GalleryVerticalEndIcon from '~icons/lucide/gallery-vertical-end';
 import ImageIcon from '~icons/lucide/image';
 import ListIcon from '~icons/lucide/list';
@@ -60,6 +61,17 @@ export const menuItems: MenuItem[] = [
     icon: ListOrderedIcon,
     command: ({ editor, range }) => {
       chain(editor, range).toggleOrderedList().run();
+    },
+  },
+  {
+    id: 'footnote',
+    type: 'footnote_reference',
+    group: 'block',
+    name: '각주',
+    keywords: ['footnote'],
+    icon: FootnotesIcon,
+    command: ({ editor, range }) => {
+      chain(editor, range).insertFootnote().run();
     },
   },
   {

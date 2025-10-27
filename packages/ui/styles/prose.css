@@ -49,6 +49,36 @@
   :is(ul, ol) .selected-node:not(:first-child) li:first-child {
     margin-top: 4px;
   }
+
+  [data-footnote-list] {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--colors-border-subtle);
+    list-style-type: none;
+    font-size: 0.875em;
+
+    li[data-footnote-id] {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+
+      &::marker {
+        content: none;
+      }
+    }
+  }
+
+  sup[data-footnote-id] {
+    font-size: 0.75em;
+    line-height: 0;
+    vertical-align: super;
+    cursor: pointer;
+    font-weight: 500;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
 
 .ProseMirror-hydratable {

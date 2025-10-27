@@ -5,6 +5,7 @@ import {
   Clipboard,
   Command,
   DropCursor,
+  Footnote,
   IOSSelection,
   NodeCommands,
   NodeId,
@@ -92,6 +93,7 @@ export const baseExtensions = [
   SyntaxHighlight,
   TrailingNode,
   Clipboard,
+  Footnote,
 ];
 
 export const editorExtensions = [

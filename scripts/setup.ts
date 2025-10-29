@@ -6,6 +6,8 @@
  * This script automates the initial development environment setup for the Typie monorepo.
  * It checks for required tools, installs dependencies, configures environments, sets up the database,
  * and builds shared packages.
+ *
+ * cspell:words psql AQAB
  */
 
 import { execSync } from 'node:child_process';
@@ -57,16 +59,12 @@ const prompt = (question: string): Promise<string> => {
 
 // 명령어 실행 헬퍼
 const exec = (command: string, options?: { cwd?: string; silent?: boolean }): string => {
-  try {
-    const result = execSync(command, {
-      cwd: options?.cwd || projectRoot,
-      encoding: 'utf8',
-      stdio: options?.silent ? 'pipe' : 'inherit',
-    });
-    return result;
-  } catch (err) {
-    throw err;
-  }
+  const result = execSync(command, {
+    cwd: options?.cwd || projectRoot,
+    encoding: 'utf8',
+    stdio: options?.silent ? 'pipe' : 'inherit',
+  });
+  return result;
 };
 
 // 명령어 존재 여부 확인
@@ -223,7 +221,7 @@ async function setupEnvironment() {
   log.step('환경 변수 설정 중...');
 
   // API 환경 변수 설정
-  const apiEnvPath = join(projectRoot, 'apps/api/.env');
+  const apiEnvPath = path.join(projectRoot, 'apps/api/.env');
 
   if (existsSync(apiEnvPath)) {
     log.info('API .env 파일이 이미 존재합니다. 건너뜁니다.');
@@ -297,7 +295,7 @@ SPELLCHECK_URL=http://localhost:8081
   }
 
   // Website 환경 변수 설정
-  const websiteEnvPath = join(projectRoot, 'apps/website/.env');
+  const websiteEnvPath = path.join(projectRoot, 'apps/website/.env');
 
   if (existsSync(websiteEnvPath)) {
     log.info('Website .env 파일이 이미 존재합니다. 건너뜁니다.');
@@ -326,13 +324,13 @@ async function setupDatabase() {
 
   // 데이터베이스 연결 테스트
   try {
-    const apiEnvPath = join(projectRoot, 'apps/api/.env');
+    const apiEnvPath = path.join(projectRoot, 'apps/api/.env');
     if (!existsSync(apiEnvPath)) {
       log.warn('API .env 파일이 없습니다. 데이터베이스 설정을 건너뜁니다.');
       return;
     }
 
-    const envContent = readFileSync(apiEnvPath, 'utf-8');
+    const envContent = readFileSync(apiEnvPath, 'utf8');
     const databaseUrlMatch = envContent.match(/DATABASE_URL=(.+)/);
 
     if (!databaseUrlMatch) {
@@ -364,7 +362,7 @@ async function setupDatabase() {
     // 마이그레이션 실행
     log.info('데이터베이스 마이그레이션 실행 중...');
     try {
-      exec('bun drizzle-kit migrate', { cwd: join(projectRoot, 'apps/api') });
+      exec('bun drizzle-kit migrate', { cwd: path.join(projectRoot, 'apps/api') });
       log.success('마이그레이션 완료');
     } catch (err) {
       log.error('마이그레이션 실패');
@@ -376,7 +374,7 @@ async function setupDatabase() {
     if (shouldSeed.toLowerCase() !== 'n') {
       log.info('시드 데이터 삽입 중...');
       try {
-        exec('bun run scripts/seed.ts', { cwd: join(projectRoot, 'apps/api') });
+        exec('bun run scripts/seed.ts', { cwd: path.join(projectRoot, 'apps/api') });
         log.success('시드 데이터 삽입 완료');
       } catch {
         log.warn('시드 데이터 삽입 실패 (이미 존재할 수 있습니다)');
@@ -404,9 +402,9 @@ async function verifyServices() {
   // Meilisearch 연결 테스트
   if (commandExists('meilisearch')) {
     try {
-      const apiEnvPath = join(projectRoot, 'apps/api/.env');
+      const apiEnvPath = path.join(projectRoot, 'apps/api/.env');
       if (existsSync(apiEnvPath)) {
-        const envContent = readFileSync(apiEnvPath, 'utf-8');
+        const envContent = readFileSync(apiEnvPath, 'utf8');
         const meilisearchUrlMatch = envContent.match(/MEILISEARCH_URL=(.+)/);
 
         if (meilisearchUrlMatch) {
@@ -434,7 +432,7 @@ async function buildPackages() {
   try {
     // Sark 패키지 빌드 (다른 패키지가 의존)
     log.info('Sark 패키지 빌드 중...');
-    exec('bun run build', { cwd: join(projectRoot, 'packages/sark') });
+    exec('bun run build', { cwd: path.join(projectRoot, 'packages/sark') });
     log.success('Sark 빌드 완료');
 
     // Turbo codegen 실행 (styled-system, ui 등의 코드 생성)
@@ -508,32 +506,27 @@ function printSummary() {
   console.log(`${colors.dim}자세한 내용은 SETUP.md를 참조하세요.${colors.reset}\n`);
 }
 
-// 메인 함수
-async function main() {
-  console.clear();
-
-  log.title('Typie 개발 환경 설정');
-  console.log(`${colors.dim}Typie 모노레포의 개발 환경을 설정합니다...${colors.reset}\n`);
-
-  try {
-    await checkEnvironment();
-    await installDependencies();
-    await setupEnvironment();
-    await setupDatabase();
-    await verifyServices();
-    await buildPackages();
-
-    printSummary();
-  } catch (err) {
-    log.error('\n설치 중 오류가 발생했습니다.');
-    if (err instanceof Error) {
-      console.error(err.message);
-    }
-    process.exit(1);
-  } finally {
-    rl.close();
-  }
-}
-
 // 스크립트 실행
-main();
+console.clear();
+
+log.title('Typie 개발 환경 설정');
+console.log(`${colors.dim}Typie 모노레포의 개발 환경을 설정합니다...${colors.reset}\n`);
+
+try {
+  await checkEnvironment();
+  await installDependencies();
+  await setupEnvironment();
+  await setupDatabase();
+  await verifyServices();
+  await buildPackages();
+
+  printSummary();
+} catch (err) {
+  log.error('\n설치 중 오류가 발생했습니다.');
+  if (err instanceof Error) {
+    console.error(err.message);
+  }
+  process.exit(1);
+} finally {
+  rl.close();
+}

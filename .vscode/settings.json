@@ -19,7 +19,6 @@
   "svelte.plugin.svelte.defaultScriptLanguage": "ts",
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "typescript.tsdk": "node_modules/typescript/lib",
-  "workbench.activityBar.orientation": "vertical",
   "[dart]": {
     "editor.defaultFormatter": "Dart-Code.dart-code",
     "editor.codeActionsOnSave": {

@@ -1,0 +1,9 @@
+# direnv configuration example
+# Copy this file to .envrc and adjust paths as needed
+
+# Load local environment variables if they exist
+dotenv_if_exists .env.local
+
+# SOPS age key file location
+# This should point to your local SOPS age key file
+# export SOPS_AGE_KEY_FILE="$HOME/.sops/age/keys.txt"

@@ -9,13 +9,16 @@ import { nanoid } from 'nanoid';
 import qs from 'query-string';
 import { redis } from '@/cache';
 import { db, first, UserSessions } from '@/db';
-import { env } from '@/env';
+import { dev, env } from '@/env';
 import { jwk, privateKey, publicKey } from '@/utils';
 import type { Env } from '@/context';
 
 export const auth = new Hono<Env>();
 
 auth.get('/.well-known/openid-configuration', (c) => {
+  if (dev) {
+    return c.json({ error: 'OIDC disabled in development mode' }, 503);
+  }
   if (!jwk) {
     return c.json({ error: 'OIDC not configured' }, 503);
   }
@@ -37,16 +40,22 @@ auth.get('/.well-known/openid-configuration', (c) => {
 });
 
 auth.get('/jwks', async (c) => {
+  if (dev) {
+    return c.json({ error: 'OIDC disabled in development mode' }, 503);
+  }
   if (!jwk || !publicKey) {
     return c.json({ error: 'OIDC not configured' }, 503);
   }
-  const exported = await jose.exportJWK(publicKey);
+  const exported = await jose.exportJWK(publicKey as Parameters<typeof jose.exportJWK>[0]);
   return c.json({
     keys: [{ ...exported, kid: jwk.kid, alg: jwk.alg }],
   });
 });
 
 auth.get('/authorize', async (c) => {
+  if (dev) {
+    return c.json({ error: 'OIDC disabled in development mode' }, 503);
+  }
   if (!jwk || !privateKey) {
     return c.json({ error: 'OIDC not configured' }, 503);
   }
@@ -131,6 +140,9 @@ auth.get('/authorize', async (c) => {
 });
 
 auth.post('/token', async (c) => {
+  if (dev) {
+    return c.json({ error: 'OIDC disabled in development mode' }, 503);
+  }
   if (!jwk || !privateKey) {
     return c.json({ error: 'OIDC not configured' }, 503);
   }
@@ -202,7 +214,7 @@ auth.post('/token', async (c) => {
     })
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       .setProtectedHeader({ alg: jwk.alg!, kid: jwk.kid })
-      .sign(privateKey);
+      .sign(privateKey as Parameters<jose.SignJWT['sign']>[0]);
 
     let idToken;
 
@@ -216,7 +228,7 @@ auth.post('/token', async (c) => {
       })
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         .setProtectedHeader({ alg: jwk.alg!, kid: jwk.kid })
-        .sign(privateKey);
+        .sign(privateKey as Parameters<jose.SignJWT['sign']>[0]);
     }
 
     return c.json({
@@ -232,6 +244,9 @@ auth.post('/token', async (c) => {
 });
 
 auth.get('/userinfo', async (c) => {
+  if (dev) {
+    return c.json({ error: 'OIDC disabled in development mode' }, 503);
+  }
   if (!publicKey) {
     return c.json({ error: 'OIDC not configured' }, 503);
   }
@@ -243,7 +258,7 @@ auth.get('/userinfo', async (c) => {
   }
 
   try {
-    const { payload } = await jose.jwtVerify(accessToken, publicKey);
+    const { payload } = await jose.jwtVerify(accessToken, publicKey as Parameters<typeof jose.jwtVerify>[1]);
 
     if (!payload.sub) {
       return c.json({ error: 'invalid_token', error_description: 'Token missing sub claim.' }, 401);

@@ -27,11 +27,7 @@ const schema = z.object({
   NAVER_CLIENT_SECRET: z.string().default(''),
   OIDC_CLIENT_ID: z.string().default(''),
   OIDC_CLIENT_SECRET: z.string().default(''),
-  OIDC_JWK: z
-    .string()
-    .default(
-      'eyJjcnYiOiJQLTI1NiIsImQiOiJrZ0o3OGRvanFSZXVNZmp3RW9BQ2pIUWpCTFlxM0FnZ0htLVFZOTNNUE9nIiwia3R5IjoiRUMiLCJ4IjoicGlYR1BNdS1XQU56U1dhSTl1VWZQNENZSFpKY2RpS0xCZGRaNWJmS19JNCIsInkiOiJsVXA2Y2E0T3d1MXoxZHFvNUpmZFpHcFcxd0ZKWEZJT2NNLXhFRnNnOW9BIiwia2lkIjoiZHVtbXkiLCJhbGciOiJFUzI1NiJ9',
-    ),
+  OIDC_JWK: z.string().default(''),
   OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional(),
   PORTONE_API_SECRET: z.string().default(''),
   PORTONE_CHANNEL_KEY: z.string().default(''),

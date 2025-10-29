@@ -73,5 +73,7 @@ const errorHandler: HandleServerError = ({ error, status, message }) => {
   log.error('Server error {*}', { status, message, error });
 };
 
-export const handle = sequence(Sentry.sentryHandle(), logging, rootRedirect, theme, header);
+export const handle = env.PUBLIC_SENTRY_DSN 
+  ? sequence(Sentry.sentryHandle(), logging, rootRedirect, theme, header)
+  : sequence(logging, rootRedirect, theme, header);
 export const handleError = Sentry.handleErrorWithSentry(errorHandler);

@@ -10,21 +10,28 @@ import type { Handle, HandleServerError } from '@sveltejs/kit';
 
 globalThis.__happydom__ = { window: new GlobalWindow() };
 
-Sentry.init({
-  dsn: env.PUBLIC_SENTRY_DSN,
-  sendDefaultPii: true,
-});
+if (env.PUBLIC_SENTRY_DSN) {
+  try {
+    Sentry.init({
+      dsn: env.PUBLIC_SENTRY_DSN,
+      sendDefaultPii: true,
+    });
+  } catch (err) {
+    console.warn('[Sentry] Initialization failed:', err);
+  }
+}
 
 const log = logger.getChild('http');
 
 const rootRedirect: Handle = async ({ event, resolve }) => {
   if (event.url.pathname === '/') {
     const target = event.url.search ? `/website${event.url.search}` : '/website';
+    console.log('[rootRedirect] Redirecting / to', target);
 
     return new Response(null, {
       status: 307,
       headers: {
-        location: target,
+        Location: target,
       },
     });
   }

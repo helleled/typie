@@ -16,6 +16,9 @@ import type { Env } from '@/context';
 export const auth = new Hono<Env>();
 
 auth.get('/.well-known/openid-configuration', (c) => {
+  if (!jwk) {
+    return c.json({ error: 'OIDC not configured' }, 503);
+  }
   return c.json({
     issuer: env.AUTH_URL,
     authorization_endpoint: `${env.AUTH_URL}/authorize`,
@@ -34,6 +37,9 @@ auth.get('/.well-known/openid-configuration', (c) => {
 });
 
 auth.get('/jwks', async (c) => {
+  if (!jwk || !publicKey) {
+    return c.json({ error: 'OIDC not configured' }, 503);
+  }
   const exported = await jose.exportJWK(publicKey);
   return c.json({
     keys: [{ ...exported, kid: jwk.kid, alg: jwk.alg }],
@@ -41,6 +47,9 @@ auth.get('/jwks', async (c) => {
 });
 
 auth.get('/authorize', async (c) => {
+  if (!jwk || !privateKey) {
+    return c.json({ error: 'OIDC not configured' }, 503);
+  }
   const { client_id, redirect_uri, response_type, scope, state, prompt, code_challenge, code_challenge_method } = c.req.query();
 
   if (!client_id || !redirect_uri || !response_type) {
@@ -122,6 +131,9 @@ auth.get('/authorize', async (c) => {
 });
 
 auth.post('/token', async (c) => {
+  if (!jwk || !privateKey) {
+    return c.json({ error: 'OIDC not configured' }, 503);
+  }
   const { grant_type, code, redirect_uri, client_id, client_secret, code_verifier } = await c.req.parseBody<Record<string, string>>();
 
   if (!client_id) {
@@ -220,6 +232,9 @@ auth.post('/token', async (c) => {
 });
 
 auth.get('/userinfo', async (c) => {
+  if (!publicKey) {
+    return c.json({ error: 'OIDC not configured' }, 503);
+  }
   const authorization = c.req.header('Authorization');
   const accessToken = authorization?.match(/^Bearer\s+(.+)$/)?.[1];
 

@@ -1,7 +1,5 @@
 import { Redis } from 'ioredis';
 import { env } from '@/env';
 
-export const redis = new Redis({
-  name: 'primary',
-  sentinels: [{ host: env.REDIS_URL }],
-});
+// Use simple Redis URL connection instead of Sentinel mode for development
+export const redis = new Redis(env.REDIS_URL);

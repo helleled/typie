@@ -3,15 +3,30 @@ import { cert, initializeApp } from 'firebase-admin/app';
 import { FirebaseMessagingError, getMessaging } from 'firebase-admin/messaging';
 import { db, UserPushNotificationTokens } from '@/db';
 import { env } from '@/env';
+import type { App } from 'firebase-admin/app';
+import type { Messaging } from 'firebase-admin/messaging';
 
-export const app = initializeApp({
-  credential: cert(JSON.parse(env.GOOGLE_SERVICE_ACCOUNT)),
-});
+let app: App | null = null;
+let messaging: Messaging | null = null;
 
-export const messaging = getMessaging(app);
+if (env.GOOGLE_SERVICE_ACCOUNT) {
+  try {
+    app = initializeApp({
+      credential: cert(JSON.parse(env.GOOGLE_SERVICE_ACCOUNT)),
+    });
+    messaging = getMessaging(app);
+  } catch (err) {
+    console.warn('[Firebase] Invalid credentials, features disabled:', err instanceof Error ? err.message : err);
+  }
+}
 
 type SendPushNotificationParams = { userId: string; title: string; body: string };
 export const sendPushNotification = async ({ userId, title, body }: SendPushNotificationParams) => {
+  if (!messaging) {
+    console.warn('[Firebase] Push notifications not configured, skipping');
+    return false;
+  }
+
   const tokens = await db
     .select({ token: UserPushNotificationTokens.token })
     .from(UserPushNotificationTokens)

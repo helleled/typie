@@ -1,7 +1,16 @@
 import { PortOneClient, RestError } from '@portone/server-sdk';
 import { env } from '../env';
+import type { PortOneClient as PortOneClientType } from '@portone/server-sdk';
 
-export const client = PortOneClient({ secret: env.PORTONE_API_SECRET });
+let client: PortOneClientType | null = null;
+
+if (env.PORTONE_API_SECRET && env.PORTONE_CHANNEL_KEY) {
+  try {
+    client = PortOneClient({ secret: env.PORTONE_API_SECRET });
+  } catch (err) {
+    console.warn('[PortOne] Invalid credentials, features disabled:', err instanceof Error ? err.message : err);
+  }
+}
 
 type PortOneSuccessResult<T> = { status: 'succeeded' } & T;
 type PortOneFailureResult = { status: 'failed'; code: string; message: string };
@@ -18,6 +27,10 @@ type IssueBillingKeyParams = {
 };
 type IssueBillingKeyResult = PortOneResult<{ billingKey: string; cardName: string }>;
 export const issueBillingKey = async (params: IssueBillingKeyParams): Promise<IssueBillingKeyResult> => {
+  if (!client) {
+    return makeFailureResult(new Error('PortOne not configured'));
+  }
+
   try {
     const {
       billingKeyInfo: { billingKey },
@@ -61,6 +74,10 @@ export const issueBillingKey = async (params: IssueBillingKeyParams): Promise<Is
 type DeleteBillingKeyParams = { billingKey: string };
 type DeleteBillingKeyResult = PortOneResult<unknown>;
 export const deleteBillingKey = async (params: DeleteBillingKeyParams): Promise<DeleteBillingKeyResult> => {
+  if (!client) {
+    return makeFailureResult(new Error('PortOne not configured'));
+  }
+
   try {
     await client.payment.billingKey.deleteBillingKey({ billingKey: params.billingKey });
 
@@ -80,6 +97,10 @@ type PayWithBillingKeyParams = {
 };
 type PayWithBillingKeyResult = PortOneResult<{ approvalNumber: string; receiptUrl: string }>;
 export const payWithBillingKey = async (params: PayWithBillingKeyParams): Promise<PayWithBillingKeyResult> => {
+  if (!client) {
+    return makeFailureResult(new Error('PortOne not configured'));
+  }
+
   try {
     await client.payment.payWithBillingKey({
       paymentId: params.paymentId,
@@ -113,6 +134,10 @@ export const payWithBillingKey = async (params: PayWithBillingKeyParams): Promis
 type GetPaymentParams = { paymentId: string };
 type GetPaymentResult = PortOneResult<{ amount: number; customData: string | undefined }>;
 export const getPayment = async (params: GetPaymentParams): Promise<GetPaymentResult> => {
+  if (!client) {
+    return makeFailureResult(new Error('PortOne not configured'));
+  }
+
   const resp = await client.payment.getPayment({
     paymentId: params.paymentId,
   });
@@ -137,6 +162,10 @@ type GetIdentityVerificationResult = PortOneResult<{
   ci: string;
 }>;
 export const getIdentityVerification = async (params: GetIdentityVerificationParams): Promise<GetIdentityVerificationResult> => {
+  if (!client) {
+    return makeFailureResult(new Error('PortOne not configured'));
+  }
+
   const resp = await client.identityVerification.getIdentityVerification({
     identityVerificationId: params.identityVerificationId,
   });

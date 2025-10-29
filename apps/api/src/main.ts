@@ -8,9 +8,16 @@ import { app } from '@/app';
 import { deriveContext } from '@/context';
 import { env } from '@/env';
 import { graphql } from '@/graphql';
+import { cors, security } from '@/middleware';
 import { rest } from '@/rest';
 
 const log = logger.getChild('main');
+
+// Apply security headers middleware
+app.use('*', security());
+
+// Apply CORS middleware
+app.use('*', cors());
 
 app.use('*', async (c, next) => {
   const context = await deriveContext(c);

@@ -17,6 +17,21 @@ Sentry.init({
 
 const log = logger.getChild('http');
 
+const rootRedirect: Handle = async ({ event, resolve }) => {
+  if (event.url.pathname === '/') {
+    const target = event.url.search ? `/website${event.url.search}` : '/website';
+
+    return new Response(null, {
+      status: 307,
+      headers: {
+        location: target,
+      },
+    });
+  }
+
+  return resolve(event);
+};
+
 const theme: Handle = async ({ event, resolve }) => {
   const theme = event.cookies.get('typie-th');
 
@@ -51,5 +66,5 @@ const errorHandler: HandleServerError = ({ error, status, message }) => {
   log.error('Server error {*}', { status, message, error });
 };
 
-export const handle = sequence(Sentry.sentryHandle(), logging, theme, header);
+export const handle = sequence(Sentry.sentryHandle(), logging, rootRedirect, theme, header);
 export const handleError = Sentry.handleErrorWithSentry(errorHandler);

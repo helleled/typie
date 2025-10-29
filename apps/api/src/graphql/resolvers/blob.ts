@@ -1,7 +1,6 @@
 import path from 'node:path';
 import { CopyObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { createPresignedPost } from '@aws-sdk/s3-presigned-post';
-import { getFontMetadata, toWoff2 } from '@typie/fondue';
 import { and, eq } from 'drizzle-orm';
 import qs from 'query-string';
 import sharp from 'sharp';
@@ -13,6 +12,36 @@ import { TypieError } from '@/errors';
 import * as aws from '@/external/aws';
 import { builder } from '../builder';
 import { Blob, File, Font, Image, isTypeOf } from '../objects';
+
+type FondueModule = {
+  getFontMetadata: (buffer: Uint8Array) => {
+    familyName?: string;
+    fullName?: string;
+    postScriptName?: string;
+    weight: number;
+    style: string;
+  };
+  toWoff2: (buffer: Uint8Array) => Uint8Array;
+};
+
+let fondue: FondueModule | null = null;
+let fondueLoadAttempted = false;
+
+async function loadFondue() {
+  if (fondueLoadAttempted) {
+    return fondue;
+  }
+
+  fondueLoadAttempted = true;
+
+  try {
+    fondue = await import('@typie/fondue');
+    return fondue;
+  } catch {
+    console.warn('[fondue] Native module not available, font features disabled');
+    return null;
+  }
+}
 
 /**
  * * Types
@@ -238,6 +267,11 @@ builder.mutationFields((t) => ({
     type: Font,
     input: { path: t.input.string() },
     resolve: async (_, { input }, ctx) => {
+      const fondueModule = await loadFondue();
+      if (!fondueModule) {
+        throw new TypieError({ code: 'feature_unavailable', message: 'Font processing is not available in this environment' });
+      }
+
       const object = await aws.s3.send(
         new GetObjectCommand({
           Bucket: 'typie-uploads',
@@ -248,14 +282,14 @@ builder.mutationFields((t) => ({
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const buffer = await object.Body!.transformToByteArray();
 
-      const metadata = getFontMetadata(buffer);
+      const metadata = fondueModule.getFontMetadata(buffer);
 
       if (metadata.style !== 'normal') {
         throw new TypieError({ code: 'invalid_font_style' });
       }
 
       const filePath = path.join(path.dirname(input.path), `${path.basename(input.path, path.extname(input.path))}.woff2`);
-      const woff2 = toWoff2(buffer);
+      const woff2 = fondueModule.toWoff2(buffer);
 
       const name =
         metadata.familyName ??

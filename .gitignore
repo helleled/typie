@@ -7,6 +7,7 @@ target/
 out/
 .turbo/
 
+.env
 .env.local
 kubeconfig
 

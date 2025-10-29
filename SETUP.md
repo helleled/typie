@@ -245,6 +245,10 @@ bun run dev
 cd apps/api
 bun run dev
 
+# API 서버 (Doppler 사용)
+cd apps/api
+bun run dev:doppler
+
 # 웹사이트
 cd apps/website
 bun run dev
@@ -253,6 +257,8 @@ bun run dev
 cd apps/mobile
 flutter run
 ```
+
+**참고:** API 서버는 기본적으로 `.env` 파일에서 환경 변수를 로드합니다. Doppler를 사용하려면 `dev:doppler` 스크립트를 사용하세요.
 
 ## 서비스 시작
 

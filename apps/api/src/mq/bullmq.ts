@@ -11,9 +11,7 @@ const lane = dev ? os.hostname() : stack;
 const taskMap = Object.fromEntries([...jobs, ...crons].map((job) => [job.name, job.fn]));
 
 export const queue = new Queue(lane, {
-  connection: new Redis({
-    name: 'primary',
-    sentinels: [{ host: env.REDIS_URL }],
+  connection: new Redis(env.REDIS_URL, {
     maxRetriesPerRequest: null,
   }),
 
@@ -36,9 +34,7 @@ export const worker = new Worker(
     await fn?.(job.data);
   },
   {
-    connection: new Redis({
-      name: 'primary',
-      sentinels: [{ host: env.REDIS_URL }],
+    connection: new Redis(env.REDIS_URL, {
       maxRetriesPerRequest: null,
     }),
 

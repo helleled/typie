@@ -11,13 +11,17 @@
   "scripts": {
     "bootstrap": "lefthook install",
     "build": "turbo run build",
+    "check-services": "bun run scripts/check-services.ts",
     "dev": "turbo run dev",
+    "dev-services": "bun run scripts/dev-services.ts",
     "lint:eslint": "eslint --max-warnings 0 .",
     "lint:prettier": "prettier --check --ignore-unknown '**/*'",
     "lint:spellcheck": "cspell --no-progress --relative '**/*'",
     "lint:svelte": "turbo run lint:svelte",
     "lint:syncpack": "syncpack lint",
     "lint:typecheck": "turbo run lint:typecheck",
+    "quickstart": "bun run scripts/quickstart.ts",
+    "setup": "bun run scripts/setup.ts",
     "test": "turbo run test"
   },
   "overrides": {

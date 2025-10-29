@@ -106,7 +106,7 @@ export const deriveContext = async (c: ServerContext): Promise<Context> => {
 
   const authorization = c.req.header('Authorization');
   const accessToken = authorization?.match(/^Bearer\s+(.+)$/)?.[1];
-  if (accessToken) {
+  if (accessToken && publicKey) {
     try {
       const { payload } = await jose.jwtVerify(accessToken, publicKey);
       const { sub, sid } = payload;

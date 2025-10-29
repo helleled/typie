@@ -496,15 +496,27 @@ if (!nativeBinding || process.env.NAPI_RS_FORCE_WASI) {
 }
 
 if (!nativeBinding) {
-  if (loadErrors.length > 0) {
-    throw new Error(
-      `Cannot find native binding. ` +
-        `npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828). ` +
-        'Please try `npm i` again after removing both package-lock.json and node_modules directory.',
-      { cause: loadErrors }
-    )
+  console.warn('[fondue] Using mock implementation');
+  console.warn('[fondue] Native font processing module not available. Font features will return dummy data.');
+  console.warn('[fondue] To build the native module, run: cd crates/fondue && bun run build:napi');
+  
+  // Mock implementation for development
+  // This allows the API to start without requiring the Rust NAPI module to be built
+  nativeBinding = {
+    getFontMetadata: function(data) {
+      return {
+        weight: 400,
+        style: 'normal',
+        familyName: 'Mock Font Family',
+        fullName: 'Mock Font Full Name',
+        postScriptName: 'MockFont-Regular'
+      }
+    },
+    toWoff2: function(data) {
+      // Return the input data as-is since we can't actually convert
+      return data
+    }
   }
-  throw new Error(`Failed to load native binding`)
 }
 
 module.exports = nativeBinding

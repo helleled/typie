@@ -6,6 +6,7 @@ import { createYoga, useExecutionCancellation } from 'graphql-yoga';
 import { Hono } from 'hono';
 import { upgradeWebSocket } from 'hono/bun';
 import { redis } from '@/cache';
+import { dev } from '@/env';
 import { useError } from './plugins/error';
 import { useLogger } from './plugins/logger';
 import { schema } from './schema';
@@ -18,9 +19,11 @@ const app = createYoga<{ c: ServerContext }, UserContext>({
   context: ({ c }) => ({ c, ...c.get('context') }),
   graphqlEndpoint: '/graphql',
   batching: true,
+  // CORS is handled by Hono middleware, but we disable it here to avoid double-handling
+  // In development, GraphQL Yoga's CORS is disabled as Hono's CORS middleware handles it
   cors: false,
   maskedErrors: false,
-  landingPage: false,
+  landingPage: dev, // Enable GraphiQL landing page in development
   plugins: [
     useExecutionCancellation(),
     useLogger(),

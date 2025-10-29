@@ -1,31 +1,10 @@
-import '$lib/polyfills';
-import '@typie/lib/dayjs';
-
-import * as Sentry from '@sentry/sveltekit';
-import { sequence } from '@sveltejs/kit/hooks';
-import { logger, logging } from '@typie/lib/svelte';
-import { GlobalWindow } from 'happy-dom';
-import { env } from '$env/dynamic/public';
 import type { Handle, HandleServerError } from '@sveltejs/kit';
 
-globalThis.__happydom__ = { window: new GlobalWindow() };
-
-if (env.PUBLIC_SENTRY_DSN) {
-  try {
-    Sentry.init({
-      dsn: env.PUBLIC_SENTRY_DSN,
-      sendDefaultPii: true,
-    });
-  } catch (err) {
-    console.warn('[Sentry] Initialization failed:', err);
-  }
-}
-
-const log = logger.getChild('http');
-
 const rootRedirect: Handle = async ({ event, resolve }) => {
+  console.log('[rootRedirect] Called for pathname:', event.url.pathname);
+  
   if (event.url.pathname === '/') {
-    const target = event.url.search ? `/website${event.url.search}` : '/website';
+    const target = '/website';
     console.log('[rootRedirect] Redirecting / to', target);
 
     return new Response(null, {
@@ -39,43 +18,9 @@ const rootRedirect: Handle = async ({ event, resolve }) => {
   return resolve(event);
 };
 
-const theme: Handle = async ({ event, resolve }) => {
-  const theme = event.cookies.get('typie-th');
-
-  return resolve(event, {
-    transformPageChunk: ({ html }) => {
-      if (event.url.pathname.includes('landing')) {
-        return html.replace('%app.theme%', 'light');
-      }
-
-      const defaultTheme = event.url.pathname.includes('_webview') ? 'light' : 'auto';
-      const themeValue = theme && ['auto', 'light', 'dark'].includes(theme) ? theme : defaultTheme;
-      return html.replace('%app.theme%', themeValue);
-    },
-  });
-};
-
-const header: Handle = async ({ event, resolve }) => {
-  return resolve(event, {
-    filterSerializedResponseHeaders: (name) => {
-      const n = name.toLowerCase();
-
-      if (n === 'content-type') {
-        return true;
-      }
-
-      return false;
-    },
-  });
-};
-
 const errorHandler: HandleServerError = ({ error, status, message }) => {
-  log.error('Server error {*}', { status, message, error });
+  console.error('Server error:', { status, message, error });
 };
 
-export const handle = env.PUBLIC_SENTRY_DSN
-  ? sequence(Sentry.sentryHandle(), logging, rootRedirect, theme, header)
-  : sequence(logging, rootRedirect, theme, header);
-export const handleError = env.PUBLIC_SENTRY_DSN 
-  ? Sentry.handleErrorWithSentry(errorHandler) 
-  : errorHandler;
+export const handle = rootRedirect;
+export const handleError = errorHandler;

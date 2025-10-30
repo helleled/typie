@@ -7,12 +7,10 @@ export default defineConfig({
   schema: './src/db/schemas/*',
   out: './drizzle',
 
-  dialect: 'postgresql',
+  dialect: 'sqlite',
   dbCredentials: {
-    url: `${process.env.DATABASE_URL}?sslmode=prefer`,
+    url: './data/typie.db',
   },
-
-  tablesFilter: ['!pg_stat_statements', '!pg_stat_statements_info'],
 
   breakpoints: false,
 });

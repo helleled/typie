@@ -1,14 +1,14 @@
 import { eq, sql } from 'drizzle-orm';
-import { bigint, boolean, index, integer, jsonb, pgTable, text, unique, uniqueIndex } from 'drizzle-orm/pg-core';
+import { integer, text, index, unique, uniqueIndex, sqliteTable } from 'drizzle-orm/sqlite-core';
 import { TableCode } from './codes';
 import * as E from './enums';
 import { createDbId } from './id';
-import { bytea, datetime } from './types';
+import { bytea, datetime, jsonb } from './types';
 import type { JSONContent } from '@tiptap/core';
-import type { AnyPgColumn } from 'drizzle-orm/pg-core';
+import type { AnySQLiteColumn } from 'drizzle-orm/sqlite-core';
 import type { CanvasShape, PageLayout, PlanRules } from './json';
 
-export const Canvases = pgTable(
+export const Canvases = sqliteTable(
   'canvases',
   {
     id: text('id')
@@ -20,15 +20,18 @@ export const Canvases = pgTable(
     title: text('title'),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
     updatedAt: datetime('updated_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [index().on(t.entityId)],
+  (t) => ({
+    entityIdIdx: index('canvases_entity_id_idx').on(t.entityId),
+  }),
+);
 );
 
-export const CanvasContents = pgTable('canvas_contents', {
+export const CanvasContents = sqliteTable('canvas_contents', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => createDbId(TableCode.CANVAS_CONTENTS)),
@@ -41,16 +44,16 @@ export const CanvasContents = pgTable('canvas_contents', {
   vector: bytea('vector').notNull(),
   compactedAt: datetime('compacted_at')
     .notNull()
-    .default(sql`now()`),
+    .default(sql`(CURRENT_TIMESTAMP)`),
   createdAt: datetime('created_at')
     .notNull()
-    .default(sql`now()`),
+    .default(sql`(CURRENT_TIMESTAMP)`),
   updatedAt: datetime('updated_at')
     .notNull()
-    .default(sql`now()`),
+    .default(sql`(CURRENT_TIMESTAMP)`),
 });
 
-export const CanvasSnapshots = pgTable(
+export const CanvasSnapshots = sqliteTable(
   'canvas_snapshots',
   {
     id: text('id')
@@ -63,12 +66,15 @@ export const CanvasSnapshots = pgTable(
     order: integer('order').notNull().default(0),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [index().on(t.canvasId, t.createdAt, t.order)],
+  (t) => ({
+    canvases_canvasId_createdAt_order_idx: index('canvases_canvasId_createdAt_order_idx').on(t.canvasId, t.createdAt, t.order),
+  }),
+);
 );
 
-export const CanvasSnapshotContributors = pgTable(
+export const CanvasSnapshotContributors = sqliteTable(
   'canvas_snapshot_contributors',
   {
     id: text('id')
@@ -82,12 +88,15 @@ export const CanvasSnapshotContributors = pgTable(
       .references(() => Users.id, { onUpdate: 'cascade', onDelete: 'restrict' }),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [unique().on(t.snapshotId, t.userId)],
+  (t) => ({
+    uniqueConstraint_0: unique().on(t.snapshotId, t.userId),
+  }),
+);
 );
 
-export const CreditCodes = pgTable('credit_codes', {
+export const CreditCodes = sqliteTable('credit_codes', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => createDbId(TableCode.CREDIT_CODES)),
@@ -97,12 +106,12 @@ export const CreditCodes = pgTable('credit_codes', {
   state: E._CreditCodeState('state').notNull().default('AVAILABLE'),
   createdAt: datetime('created_at')
     .notNull()
-    .default(sql`now()`),
+    .default(sql`(CURRENT_TIMESTAMP)`),
   expiresAt: datetime('expires_at').notNull(),
   usedAt: datetime('used_at'),
 });
 
-export const Files = pgTable('files', {
+export const Files = sqliteTable('files', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => createDbId(TableCode.FILES)),
@@ -113,10 +122,10 @@ export const Files = pgTable('files', {
   path: text('path').notNull(),
   createdAt: datetime('created_at')
     .notNull()
-    .default(sql`now()`),
+    .default(sql`(CURRENT_TIMESTAMP)`),
 });
 
-export const Folders = pgTable(
+export const Folders = sqliteTable(
   'folders',
   {
     id: text('id')
@@ -128,12 +137,15 @@ export const Folders = pgTable(
     name: text('name').notNull(),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [index().on(t.entityId)],
+  (t) => ({
+    folders_entityId_idx: index('folders_entityId_idx').on(t.entityId),
+  }),
+);
 );
 
-export const FontFamilies = pgTable(
+export const FontFamilies = sqliteTable(
   'font_families',
   {
     id: text('id')
@@ -146,12 +158,15 @@ export const FontFamilies = pgTable(
     state: E._FontFamilyState('state').notNull().default('ACTIVE'),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [unique().on(t.userId, t.name)],
+  (t) => ({
+    uniqueConstraint_0: unique().on(t.userId, t.name),
+  }),
+);
 );
 
-export const Fonts = pgTable(
+export const Fonts = sqliteTable(
   'fonts',
   {
     id: text('id')
@@ -170,12 +185,15 @@ export const Fonts = pgTable(
     state: E._FontState('state').notNull().default('ACTIVE'),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [index().on(t.familyId, t.state)],
+  (t) => ({
+    fonts_familyId_state_idx: index('fonts_familyId_state_idx').on(t.familyId, t.state),
+  }),
+);
 );
 
-export const Embeds = pgTable('embeds', {
+export const Embeds = sqliteTable('embeds', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => createDbId(TableCode.EMBEDS)),
@@ -188,10 +206,10 @@ export const Embeds = pgTable('embeds', {
   thumbnailUrl: text('thumbnail_url'),
   createdAt: datetime('created_at')
     .notNull()
-    .default(sql`now()`),
+    .default(sql`(CURRENT_TIMESTAMP)`),
 });
 
-export const Entities = pgTable(
+export const Entities = sqliteTable(
   'entities',
   {
     id: text('id')
@@ -203,7 +221,7 @@ export const Entities = pgTable(
     siteId: text('site_id')
       .notNull()
       .references(() => Sites.id, { onUpdate: 'cascade', onDelete: 'restrict' }),
-    parentId: text('parent_id').references((): AnyPgColumn => Entities.id, { onUpdate: 'cascade', onDelete: 'restrict' }),
+    parentId: text('parent_id').references((): AnySQLiteColumn => Entities.id, { onUpdate: 'cascade', onDelete: 'restrict' }),
     slug: text('slug').notNull(),
     permalink: text('permalink').notNull(),
     type: E._EntityType('type').notNull(),
@@ -217,29 +235,24 @@ export const Entities = pgTable(
     purgedAt: datetime('purged_at'),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [
-    uniqueIndex()
-      .on(t.slug)
-      .where(eq(t.state, sql`'ACTIVE'`)),
-    uniqueIndex()
-      .on(t.permalink)
-      .where(eq(t.state, sql`'ACTIVE'`)),
-    unique().on(t.siteId, t.parentId, t.order).nullsNotDistinct(),
-    index().on(t.userId, t.state),
-    index().on(t.siteId, t.state),
-    index().on(t.siteId, t.parentId, t.state),
-    index().on(t.parentId, t.state),
-    index().on(t.userId, t.viewedAt),
-  ],
+  (t) => ({
+    uniqueConstraint_6: unique().on(t.siteId, t.parentId, t.order),
+    embeds_userId_state_idx: index('embeds_userId_state_idx').on(t.userId, t.state),
+    embeds_siteId_state_idx: index('embeds_siteId_state_idx').on(t.siteId, t.state),
+    embeds_siteId_parentId_state_idx: index('embeds_siteId_parentId_state_idx').on(t.siteId, t.parentId, t.state),
+    embeds_parentId_state_idx: index('embeds_parentId_state_idx').on(t.parentId, t.state),
+    embeds_userId_viewedAt_idx: index('embeds_userId_viewedAt_idx').on(t.userId, t.viewedAt),
+  }),
+);
 );
 
-export const Images = pgTable('images', {
+export const Images = sqliteTable('images', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => createDbId(TableCode.IMAGES)),
-  userId: text('user_id').references((): AnyPgColumn => Users.id, { onUpdate: 'cascade', onDelete: 'restrict' }),
+  userId: text('user_id').references((): AnySQLiteColumn => Users.id, { onUpdate: 'cascade', onDelete: 'restrict' }),
   name: text('name').notNull(),
   format: text('format').notNull(),
   size: integer('size').notNull(),
@@ -249,10 +262,10 @@ export const Images = pgTable('images', {
   path: text('path').notNull(),
   createdAt: datetime('created_at')
     .notNull()
-    .default(sql`now()`),
+    .default(sql`(CURRENT_TIMESTAMP)`),
 });
 
-export const Notes = pgTable(
+export const Notes = sqliteTable(
   'notes',
   {
     id: text('id')
@@ -268,19 +281,19 @@ export const Notes = pgTable(
     state: E._NoteState('state').notNull().default('ACTIVE'),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
     updatedAt: datetime('updated_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [
-    unique().on(t.userId, t.order).nullsNotDistinct(),
-    index().on(t.userId, t.state, t.order),
-    index().on(t.entityId, t.state, t.order),
-  ],
+  (t) => ({
+    uniqueConstraint_0: unique().on(t.userId, t.order),
+    images_userId_state_order_idx: index('images_userId_state_order_idx').on(t.userId, t.state, t.order),
+    images_entityId_state_order_idx: index('images_entityId_state_order_idx').on(t.entityId, t.state, t.order),
+  }),
 );
 
-export const PaymentInvoices = pgTable(
+export const PaymentInvoices = sqliteTable(
   'payment_invoices',
   {
     id: text('id')
@@ -297,12 +310,15 @@ export const PaymentInvoices = pgTable(
     dueAt: datetime('due_at').notNull(),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [index().on(t.userId, t.state)],
+  (t) => ({
+    entities_userId_state_idx: index('entities_userId_state_idx').on(t.userId, t.state),
+  }),
+);
 );
 
-export const PaymentRecords = pgTable('payment_records', {
+export const PaymentRecords = sqliteTable('payment_records', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => createDbId(TableCode.PAYMENT_RECORDS)),
@@ -315,10 +331,10 @@ export const PaymentRecords = pgTable('payment_records', {
   data: jsonb('data').notNull(),
   createdAt: datetime('created_at')
     .notNull()
-    .default(sql`now()`),
+    .default(sql`(CURRENT_TIMESTAMP)`),
 });
 
-export const Plans = pgTable('plans', {
+export const Plans = sqliteTable('plans', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => createDbId(TableCode.PLANS)),
@@ -329,10 +345,10 @@ export const Plans = pgTable('plans', {
   availability: E._PlanAvailability('availability').notNull(),
   createdAt: datetime('created_at')
     .notNull()
-    .default(sql`now()`),
+    .default(sql`(CURRENT_TIMESTAMP)`),
 });
 
-export const Posts = pgTable(
+export const Posts = sqliteTable(
   'posts',
   {
     id: text('id')
@@ -347,20 +363,25 @@ export const Posts = pgTable(
     coverImageId: text('cover_image_id').references(() => Images.id, { onUpdate: 'cascade', onDelete: 'restrict' }),
     password: text('password'),
     contentRating: E._PostContentRating('content_rating').notNull().default('ALL'),
-    allowReaction: boolean('allow_reaction').notNull().default(true),
-    protectContent: boolean('protect_content').notNull().default(true),
+    allowReaction: integer('allow_reaction', { mode: 'boolean' }).notNull().default(1),
+    protectContent: integer('protect_content', { mode: 'boolean' }).notNull().default(1),
     type: E._PostType('type').notNull().default('NORMAL'),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
     updatedAt: datetime('updated_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [index().on(t.entityId), index().on(t.createdAt), index().on(t.updatedAt)],
+  (t) => ({
+    posts_entityId_idx: index('posts_entityId_idx').on(t.entityId),
+    posts_createdAt_idx: index('posts_createdAt_idx').on(t.createdAt),
+    posts_updatedAt_idx: index('posts_updatedAt_idx').on(t.updatedAt),
+  }),
+);
 );
 
-export const PostAnchors = pgTable(
+export const PostAnchors = sqliteTable(
   'post_anchors',
   {
     id: text('id')
@@ -373,12 +394,15 @@ export const PostAnchors = pgTable(
     name: text('name'),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [uniqueIndex().on(t.postId, t.nodeId)],
+  (t) => ({
+    post_anchors_postId_nodeId_unique_idx: uniqueIndex('post_anchors_postId_nodeId_unique_idx').on(t.postId, t.nodeId),
+  }),
+);
 );
 
-export const PostCharacterCountChanges = pgTable(
+export const PostCharacterCountChanges = sqliteTable(
   'post_character_count_changes',
   {
     id: text('id')
@@ -395,12 +419,16 @@ export const PostCharacterCountChanges = pgTable(
     deletions: integer('deletions').notNull().default(0),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [uniqueIndex().on(t.userId, t.postId, t.bucket), index().on(t.userId, t.bucket)],
+  (t) => ({
+    post_character_count_changes_userId_postId_bucket_unique_idx: uniqueIndex('post_character_count_changes_userId_postId_bucket_unique_idx').on(t.userId, t.postId, t.bucket),
+    post_character_count_changes_userId_bucket_idx: index('post_character_count_changes_userId_bucket_idx').on(t.userId, t.bucket),
+  }),
+);
 );
 
-export const PostContents = pgTable(
+export const PostContents = sqliteTable(
   'post_contents',
   {
     id: text('id')
@@ -413,7 +441,7 @@ export const PostContents = pgTable(
     body: jsonb('body').notNull().$type<JSONContent>(),
     text: text('text').notNull(),
     characterCount: integer('character_count').notNull().default(0),
-    blobSize: bigint('blob_size', { mode: 'number' }).notNull().default(0),
+    blobSize: integer('blob_size', { mode: 'number' }).notNull().default(0),
     storedMarks: jsonb('stored_marks').notNull().$type<unknown[]>().default([]),
     layoutMode: E._PostLayoutMode('layout_mode').notNull().default('SCROLL'),
     pageLayout: jsonb('page_layout').$type<PageLayout>(),
@@ -422,18 +450,23 @@ export const PostContents = pgTable(
     vector: bytea('vector').notNull(),
     compactedAt: datetime('compacted_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
     updatedAt: datetime('updated_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [index().on(t.postId), index().on(t.updatedAt), index().on(t.compactedAt)],
+  (t) => ({
+    post_contents_postId_idx: index('post_contents_postId_idx').on(t.postId),
+    post_contents_updatedAt_idx: index('post_contents_updatedAt_idx').on(t.updatedAt),
+    post_contents_compactedAt_idx: index('post_contents_compactedAt_idx').on(t.compactedAt),
+  }),
+);
 );
 
-export const PostSnapshots = pgTable(
+export const PostSnapshots = sqliteTable(
   'post_snapshots',
   {
     id: text('id')
@@ -446,12 +479,15 @@ export const PostSnapshots = pgTable(
     order: integer('order').notNull().default(0),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [index().on(t.postId, t.createdAt, t.order)],
+  (t) => ({
+    post_snapshots_postId_createdAt_order_idx: index('post_snapshots_postId_createdAt_order_idx').on(t.postId, t.createdAt, t.order),
+  }),
+);
 );
 
-export const PostSnapshotContributors = pgTable(
+export const PostSnapshotContributors = sqliteTable(
   'post_snapshot_contributors',
   {
     id: text('id')
@@ -465,12 +501,15 @@ export const PostSnapshotContributors = pgTable(
       .references(() => Users.id, { onUpdate: 'cascade', onDelete: 'restrict' }),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [unique().on(t.snapshotId, t.userId)],
+  (t) => ({
+    uniqueConstraint_0: unique().on(t.snapshotId, t.userId),
+  }),
+);
 );
 
-export const PostReactions = pgTable(
+export const PostReactions = sqliteTable(
   'post_reactions',
   {
     id: text('id')
@@ -484,12 +523,15 @@ export const PostReactions = pgTable(
     emoji: text('emoji').notNull(),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [index().on(t.postId, t.createdAt)],
+  (t) => ({
+    post_reactions_postId_createdAt_idx: index('post_reactions_postId_createdAt_idx').on(t.postId, t.createdAt),
+  }),
+);
 );
 
-export const PreorderPayments = pgTable('preorder_payments', {
+export const PreorderPayments = sqliteTable('preorder_payments', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => createDbId(TableCode.PREORDER_PAYMENTS)),
@@ -498,13 +540,13 @@ export const PreorderPayments = pgTable('preorder_payments', {
   state: E._PreorderPaymentState('state').notNull().default('PENDING'),
   createdAt: datetime('created_at')
     .notNull()
-    .default(sql`now()`),
+    .default(sql`(CURRENT_TIMESTAMP)`),
   updatedAt: datetime('updated_at')
     .notNull()
-    .default(sql`now()`),
+    .default(sql`(CURRENT_TIMESTAMP)`),
 });
 
-export const PreorderUsers = pgTable('preorder_users', {
+export const PreorderUsers = sqliteTable('preorder_users', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => createDbId(TableCode.PREORDER_USERS)),
@@ -514,10 +556,10 @@ export const PreorderUsers = pgTable('preorder_users', {
   codeId: text('code_id').references(() => CreditCodes.id, { onUpdate: 'cascade', onDelete: 'restrict' }),
   createdAt: datetime('created_at')
     .notNull()
-    .default(sql`now()`),
+    .default(sql`(CURRENT_TIMESTAMP)`),
 });
 
-export const Referrals = pgTable('referrals', {
+export const Referrals = sqliteTable('referrals', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => createDbId(TableCode.REFERRALS)),
@@ -532,10 +574,10 @@ export const Referrals = pgTable('referrals', {
   refereeCompensatedAt: datetime('referee_compensated_at'),
   createdAt: datetime('created_at')
     .notNull()
-    .default(sql`now()`),
+    .default(sql`(CURRENT_TIMESTAMP)`),
 });
 
-export const ReferralCodes = pgTable('referral_codes', {
+export const ReferralCodes = sqliteTable('referral_codes', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => createDbId(TableCode.REFERRAL_CODES)),
@@ -546,10 +588,10 @@ export const ReferralCodes = pgTable('referral_codes', {
   code: text('code').notNull().unique(),
   createdAt: datetime('created_at')
     .notNull()
-    .default(sql`now()`),
+    .default(sql`(CURRENT_TIMESTAMP)`),
 });
 
-export const Sites = pgTable(
+export const Sites = sqliteTable(
   'sites',
   {
     id: text('id')
@@ -563,17 +605,14 @@ export const Sites = pgTable(
     state: E._SiteState('state').notNull().default('ACTIVE'),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [
-    uniqueIndex()
-      .on(t.slug)
-      .where(eq(t.state, sql`'ACTIVE'`)),
-    index().on(t.userId, t.state),
-  ],
+  (t) => ({
+    referral_codes_userId_state_idx: index('referral_codes_userId_state_idx').on(t.userId, t.state),
+  }),
 );
 
-export const Subscriptions = pgTable(
+export const Subscriptions = sqliteTable(
   'subscriptions',
   {
     id: text('id')
@@ -590,16 +629,13 @@ export const Subscriptions = pgTable(
     state: E._SubscriptionState('state').notNull().default('ACTIVE'),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [
-    uniqueIndex()
-      .on(t.userId)
-      .where(eq(t.state, sql`'ACTIVE'`)),
-  ],
+  (t) => ({
+  }),
 );
 
-export const Users = pgTable(
+export const Users = sqliteTable(
   'users',
   {
     id: text('id')
@@ -615,17 +651,14 @@ export const Users = pgTable(
     state: E._UserState('state').notNull().default('ACTIVE'),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [
-    index().on(t.email, t.state),
-    uniqueIndex()
-      .on(t.email)
-      .where(eq(t.state, sql`'ACTIVE'`)),
-  ],
+  (t) => ({
+    referral_codes_email_state_idx: index('referral_codes_email_state_idx').on(t.email, t.state),
+  }),
 );
 
-export const UserBillingKeys = pgTable('user_billing_keys', {
+export const UserBillingKeys = sqliteTable('user_billing_keys', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => createDbId(TableCode.USER_BILLING_KEYS)),
@@ -638,10 +671,10 @@ export const UserBillingKeys = pgTable('user_billing_keys', {
   cardNumberHash: text('card_number_hash'),
   createdAt: datetime('created_at')
     .notNull()
-    .default(sql`now()`),
+    .default(sql`(CURRENT_TIMESTAMP)`),
 });
 
-export const UserInAppPurchases = pgTable(
+export const UserInAppPurchases = sqliteTable(
   'user_in_app_purchases',
   {
     id: text('id')
@@ -655,12 +688,15 @@ export const UserInAppPurchases = pgTable(
     identifier: text('identifier').notNull(),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [unique().on(t.store, t.identifier)],
+  (t) => ({
+    uniqueConstraint_0: unique().on(t.store, t.identifier),
+  }),
+);
 );
 
-export const UserMarketingConsents = pgTable('user_marketing_consents', {
+export const UserMarketingConsents = sqliteTable('user_marketing_consents', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => createDbId(TableCode.USER_MARKETING_CONSENTS)),
@@ -670,10 +706,10 @@ export const UserMarketingConsents = pgTable('user_marketing_consents', {
     .references(() => Users.id, { onUpdate: 'cascade', onDelete: 'restrict' }),
   createdAt: datetime('created_at')
     .notNull()
-    .default(sql`now()`),
+    .default(sql`(CURRENT_TIMESTAMP)`),
 });
 
-export const UserPaymentCredits = pgTable('user_payment_credits', {
+export const UserPaymentCredits = sqliteTable('user_payment_credits', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => createDbId(TableCode.USER_PAYMENT_CREDITS)),
@@ -684,10 +720,10 @@ export const UserPaymentCredits = pgTable('user_payment_credits', {
   amount: integer('amount').notNull(),
   createdAt: datetime('created_at')
     .notNull()
-    .default(sql`now()`),
+    .default(sql`(CURRENT_TIMESTAMP)`),
 });
 
-export const UserPersonalIdentities = pgTable('user_personal_identities', {
+export const UserPersonalIdentities = sqliteTable('user_personal_identities', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => createDbId(TableCode.USER_PERSONAL_IDENTITIES)),
@@ -702,11 +738,11 @@ export const UserPersonalIdentities = pgTable('user_personal_identities', {
   ci: text('ci').notNull().unique(),
   createdAt: datetime('created_at')
     .notNull()
-    .default(sql`now()`),
+    .default(sql`(CURRENT_TIMESTAMP)`),
   expiresAt: datetime('expires_at').notNull(),
 });
 
-export const UserPreferences = pgTable('user_preferences', {
+export const UserPreferences = sqliteTable('user_preferences', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => createDbId(TableCode.USER_PREFERENCES)),
@@ -717,10 +753,10 @@ export const UserPreferences = pgTable('user_preferences', {
   value: jsonb('value').notNull().default({}).$type<Record<string, unknown>>(),
   createdAt: datetime('created_at')
     .notNull()
-    .default(sql`now()`),
+    .default(sql`(CURRENT_TIMESTAMP)`),
 });
 
-export const UserPushNotificationTokens = pgTable(
+export const UserPushNotificationTokens = sqliteTable(
   'user_push_notification_tokens',
   {
     id: text('id')
@@ -732,12 +768,15 @@ export const UserPushNotificationTokens = pgTable(
     token: text('token').notNull().unique(),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [index().on(t.userId)],
+  (t) => ({
+    user_push_notification_tokens_userId_idx: index('user_push_notification_tokens_userId_idx').on(t.userId),
+  }),
+);
 );
 
-export const UserSessions = pgTable(
+export const UserSessions = sqliteTable(
   'user_sessions',
   {
     id: text('id')
@@ -750,12 +789,15 @@ export const UserSessions = pgTable(
     expiresAt: datetime('expires_at').notNull(),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [index().on(t.userId)],
+  (t) => ({
+    user_sessions_userId_idx: index('user_sessions_userId_idx').on(t.userId),
+  }),
+);
 );
 
-export const UserSingleSignOns = pgTable(
+export const UserSingleSignOns = sqliteTable(
   'user_single_sign_ons',
   {
     id: text('id')
@@ -769,12 +811,16 @@ export const UserSingleSignOns = pgTable(
     email: text('email').notNull(),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [unique().on(t.userId, t.provider), unique().on(t.provider, t.principal)],
+  (t) => ({
+    uniqueConstraint_0: unique().on(t.userId, t.provider),
+    uniqueConstraint_1: unique().on(t.provider, t.principal),
+  }),
+);
 );
 
-export const UserSurveys = pgTable(
+export const UserSurveys = sqliteTable(
   'user_surveys',
   {
     id: text('id')
@@ -787,12 +833,15 @@ export const UserSurveys = pgTable(
     value: jsonb('value').notNull().default({}).$type<Record<string, unknown>>(),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [unique().on(t.userId, t.name)],
+  (t) => ({
+    uniqueConstraint_0: unique().on(t.userId, t.name),
+  }),
+);
 );
 
-export const Widgets = pgTable(
+export const Widgets = sqliteTable(
   'widgets',
   {
     id: text('id')
@@ -806,7 +855,11 @@ export const Widgets = pgTable(
     order: text('order').notNull(),
     createdAt: datetime('created_at')
       .notNull()
-      .default(sql`now()`),
+      .default(sql`(CURRENT_TIMESTAMP)`),
   },
-  (t) => [unique().on(t.userId, t.order), unique().on(t.userId, t.name)],
+  (t) => ({
+    uniqueConstraint_0: unique().on(t.userId, t.order),
+    uniqueConstraint_1: unique().on(t.userId, t.name),
+  }),
+);
 );

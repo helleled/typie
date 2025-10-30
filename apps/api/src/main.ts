@@ -6,6 +6,7 @@ import { websocket } from 'hono/bun';
 import { HTTPException } from 'hono/http-exception';
 import { app } from '@/app';
 import { deriveContext } from '@/context';
+import { runMigrations } from '@/db';
 import { env } from '@/env';
 import { graphql } from '@/graphql';
 import { cors, security } from '@/middleware';
@@ -15,6 +16,11 @@ import * as storage from '@/storage/local';
 const log = logger.getChild('main');
 
 await storage.initializeStorage();
+
+// Run database migrations on startup
+log.info('Running database migrations...');
+runMigrations();
+log.info('Database migrations completed');
 
 // Apply security headers middleware
 app.use('*', security());

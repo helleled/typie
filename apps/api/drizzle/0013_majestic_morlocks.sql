@@ -1,1 +1,0 @@
-ALTER TABLE "post_snapshot_contributors" ADD COLUMN "created_at" timestamp with time zone DEFAULT now() NOT NULL;

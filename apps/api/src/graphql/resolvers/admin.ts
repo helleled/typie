@@ -1,6 +1,6 @@
-import { and, count, desc, eq, getTableColumns, ilike, or, sql } from 'drizzle-orm';
+import { and, count, desc, eq, getTableColumns, like, or, sql } from 'drizzle-orm';
 import { redis } from '@/cache';
-import { db, Entities, first, firstOrThrow, pg, Posts, TableCode, UserPaymentCredits, Users, UserSessions, validateDbId } from '@/db';
+import { db, Entities, first, firstOrThrow, sqlite, Posts, TableCode, UserPaymentCredits, Users, UserSessions, validateDbId } from '@/db';
 import { EntityState, UserRole, UserState } from '@/enums';
 import { TypieError } from '@/errors';
 import { enqueueJob } from '@/mq';
@@ -40,7 +40,14 @@ builder.queryFields((t) => ({
       }
 
       if (args.search) {
-        conditions.push(or(ilike(Users.name, `%${args.search}%`), ilike(Users.email, `%${args.search}%`), eq(Users.id, args.search)));
+        const searchLower = args.search.toLowerCase();
+        conditions.push(
+          or(
+            like(sql`lower(${Users.name})`, `%${searchLower}%`),
+            like(sql`lower(${Users.email})`, `%${searchLower}%`),
+            eq(Users.id, args.search),
+          ),
+        );
       }
 
       if (conditions.length > 0) {
@@ -92,10 +99,11 @@ builder.queryFields((t) => ({
       }
 
       if (args.search) {
+        const searchLower = args.search.toLowerCase();
         conditions.push(
           or(
-            ilike(Posts.title, `%${args.search}%`),
-            ilike(Posts.subtitle, `%${args.search}%`),
+            like(sql`lower(${Posts.title})`, `%${searchLower}%`),
+            like(sql`lower(${Posts.subtitle})`, `%${searchLower}%`),
             eq(Posts.id, args.search),
             eq(Entities.slug, args.search),
             eq(Entities.permalink, args.search),
@@ -166,9 +174,9 @@ builder.queryFields((t) => ({
     resolve: async (_, { query, params }, ctx) => {
       await assertAdminPermission({ sessionId: ctx.session.id });
 
-      const result = await pg.begin('READ ONLY', async (sql) => {
-        return await sql.unsafe(query, params ?? []);
-      });
+      // SQLite raw query execution
+      const stmt = sqlite.prepare(query);
+      const result = params ? stmt.all(...(params as any[])) : stmt.all();
 
       return result;
     },

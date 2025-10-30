@@ -31,7 +31,7 @@ RUN bun install --no-save
 FROM build-deps AS build
 
 COPY out/full/ .
-RUN bunx turbo build --filter=@typie/api
+RUN bun x turbo build --filter=@typie/api
 RUN find . -type d -name "node_modules" -prune -exec rm -rf {} +
 
 FROM base AS runtime-deps

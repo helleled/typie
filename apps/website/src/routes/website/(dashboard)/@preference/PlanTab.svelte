@@ -21,22 +21,12 @@
 
         subscription {
           id
-          state
-
-          plan {
-            id
-            name
-          }
         }
       }
     `),
   );
 
-  const hasActiveSubscription = $derived(
-    $user.subscription?.state === 'ACTIVE' ||
-      $user.subscription?.state === 'IN_GRACE_PERIOD' ||
-      $user.subscription?.state === 'WILL_EXPIRE',
-  );
+  const hasActiveSubscription = $derived(!!$user.subscription);
 </script>
 
 <div class={flex({ direction: 'column', gap: '40px', maxWidth: '640px' })}>

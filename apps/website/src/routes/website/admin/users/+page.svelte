@@ -34,11 +34,6 @@
           }
           subscription {
             id
-            state
-            plan {
-              id
-              name
-            }
           }
           credit
           sites {
@@ -176,10 +171,10 @@
           <span
             class={css({
               fontSize: '12px',
-              color: user.subscription.state === 'ACTIVE' ? 'green.400' : 'amber.400',
+              color: 'green.400',
             })}
           >
-            {user.subscription.plan.name}
+            SUBSCRIBED
           </span>
         {:else}
           <span class={css({ fontSize: '12px', color: 'gray.400' })}>FREE</span>

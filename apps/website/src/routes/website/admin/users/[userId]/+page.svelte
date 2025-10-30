@@ -34,13 +34,6 @@
         }
         subscription {
           id
-          state
-          startsAt
-          expiresAt
-          plan {
-            id
-            name
-          }
         }
         credit
         personalIdentity {
@@ -414,43 +407,10 @@
           {#if $query.adminUser.subscription}
             <div class={flex({ flexDirection: 'column', gap: '16px' })}>
               <div>
-                <div class={css({ fontSize: '11px', color: 'amber.400', marginBottom: '4px' })}>PLAN</div>
-                <div class={css({ fontSize: '14px', color: 'amber.500', fontWeight: 'bold' })}>
-                  {$query.adminUser.subscription.plan.name}
+                <div class={css({ fontSize: '11px', color: 'amber.400', marginBottom: '4px' })}>STATUS</div>
+                <div class={css({ fontSize: '14px', color: 'green.400', fontWeight: 'bold' })}>
+                  SUBSCRIBED
                 </div>
-              </div>
-
-              <div class={flex({ alignItems: 'center', justifyContent: 'space-between' })}>
-                <span class={css({ fontSize: '11px', color: 'amber.400' })}>STATUS</span>
-                <span
-                  class={css({
-                    fontSize: '12px',
-                    color:
-                      $query.adminUser.subscription.state === 'ACTIVE'
-                        ? 'green.400'
-                        : $query.adminUser.subscription.state === 'WILL_EXPIRE'
-                          ? 'amber.400'
-                          : $query.adminUser.subscription.state === 'IN_GRACE_PERIOD'
-                            ? 'red.400'
-                            : 'gray.400',
-                  })}
-                >
-                  [{$query.adminUser.subscription.state}]
-                </span>
-              </div>
-
-              <div class={flex({ alignItems: 'center', justifyContent: 'space-between' })}>
-                <span class={css({ fontSize: '11px', color: 'amber.400' })}>STARTED</span>
-                <span class={css({ fontSize: '12px', color: 'amber.500' })}>
-                  {dayjs($query.adminUser.subscription.startsAt).formatAsDateTime()}
-                </span>
-              </div>
-
-              <div class={flex({ alignItems: 'center', justifyContent: 'space-between' })}>
-                <span class={css({ fontSize: '11px', color: 'amber.400' })}>EXPIRES</span>
-                <span class={css({ fontSize: '12px', color: 'amber.500' })}>
-                  {dayjs($query.adminUser.subscription.expiresAt).formatAsDateTime()}
-                </span>
               </div>
             </div>
           {:else}

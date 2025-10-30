@@ -41,6 +41,7 @@ vite.config.ts.timestamp-*
 # Local storage
 storage/
 .storage/
+!apps/api/src/storage/
 
 # SQLite database
 data/

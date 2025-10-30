@@ -26,8 +26,6 @@
         id
         subscription {
           id
-          state
-          expiresAt
         }
       }
     `),
@@ -168,14 +166,14 @@
           </div>
         </div>
 
-        {#if $user.subscription?.state === SubscriptionState.ACTIVE}
+        <!-- {#if $user.subscription?.state === SubscriptionState.ACTIVE}
           <p class={css({ fontSize: '14px', color: 'text.faint', lineHeight: '[1.6]' })}>
             지금 해지하더라도 {dayjs($user.subscription.expiresAt).formatAsDate()}까지는 계속해서 타이피 FULL ACCESS 혜택을 이용할 수
             있어요.
           </p>
         {:else if $user.subscription?.state === SubscriptionState.IN_GRACE_PERIOD}
           <p class={css({ fontSize: '14px', color: 'text.faint', lineHeight: '[1.6]' })}>해지 즉시 유료 서비스가 중단됩니다.</p>
-        {/if}
+        {/if} -->
       </div>
     {:else}
       <div class={flex({ flexDirection: 'column', gap: '24px' })}>

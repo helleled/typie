@@ -35,32 +35,6 @@
           id
           name
         }
-
-        subscription {
-          id
-          state
-          startsAt
-          expiresAt
-
-          plan {
-            id
-            name
-            interval
-          }
-        }
-
-        nextSubscription {
-          id
-          state
-          startsAt
-          expiresAt
-
-          plan {
-            id
-            name
-            interval
-          }
-        }
       }
     `),
   );
@@ -69,8 +43,6 @@
     mutation DashboardLayout_PreferenceModal_BillingTab_ScheduleSubscriptionCancellation_Mutation {
       scheduleSubscriptionCancellation {
         id
-        state
-        expiresAt
       }
     }
   `);
@@ -79,8 +51,6 @@
     mutation DashboardLayout_PreferenceModal_BillingTab_CancelSubscriptionCancellation_Mutation {
       cancelSubscriptionCancellation {
         id
-        state
-        expiresAt
       }
     }
   `);
@@ -89,14 +59,6 @@
     mutation DashboardLayout_PreferenceModal_BillingTab_SchedulePlanChange_Mutation($input: SchedulePlanChangeInput!) {
       schedulePlanChange(input: $input) {
         id
-        state
-        startsAt
-        expiresAt
-        plan {
-          id
-          name
-          fee
-        }
       }
     }
   `);
@@ -105,8 +67,6 @@
     mutation DashboardLayout_PreferenceModal_BillingTab_CancelPlanChange_Mutation {
       cancelPlanChange {
         id
-        state
-        expiresAt
       }
     }
   `);
@@ -142,160 +102,23 @@
   </div>
 
   <!-- Current Plan Section -->
-  <div>
+  <!-- <div>
     <h2 class={css({ fontSize: '16px', fontWeight: 'semibold', color: 'text.default', marginBottom: '24px' })}>현재 플랜</h2>
 
-    {#if !$user.subscription}
-      <SettingsCard>
-        <SettingsRow>
-          {#snippet label()}
-            타이피 BASIC ACCESS
-          {/snippet}
-          {#snippet description()}
-            타이피의 기본 기능을 무료로 이용할 수 있어요.
-          {/snippet}
-          {#snippet value()}
-            <Button onclick={() => (updatePaymentMethodOpen = true)} size="sm" variant="secondary">업그레이드</Button>
-          {/snippet}
-        </SettingsRow>
-      </SettingsCard>
-    {:else}
-      {@const subscription = $user.subscription}
-      <SettingsCard>
-        <SettingsRow>
-          {#snippet label()}
-            {subscription.plan.name} 플랜
-          {/snippet}
-          {#snippet description()}
-            {#if subscription.state === SubscriptionState.ACTIVE}
-              <span>
-                {dayjs(subscription.expiresAt).formatAsDate()}에 {comma(subscription.plan.fee)}원 결제 예정
-              </span>
-            {:else if subscription.state === SubscriptionState.WILL_EXPIRE}
-              <span class={css({ color: 'text.danger' })}>
-                {dayjs(subscription.expiresAt).formatAsDate()} 해지 예정
-              </span>
-            {/if}
-          {/snippet}
-          {#snippet value()}
-            이용 기간: {dayjs(subscription.startsAt).formatAsDate()} ~ {dayjs(subscription.expiresAt).formatAsDate()}
-          {/snippet}
-        </SettingsRow>
-
-        {#if subscription.state === SubscriptionState.ACTIVE && !$user.nextSubscription && PlanPair[subscription.plan.id as keyof typeof PlanPair]}
-          <SettingsDivider />
-
-          <SettingsRow>
-            {#snippet label()}
-              플랜 전환
-            {/snippet}
-            {#snippet description()}
-              {@const isMonthly = subscription.plan.interval === PlanInterval.MONTHLY}
-              {isMonthly ? '1년 단위로 결제하면 2개월 무료 혜택을 받아요.' : '한 달 단위로 결제할 수 있어요.'}
-            {/snippet}
-            {#snippet value()}
-              {@const targetPlanId = PlanPair[subscription.plan.id as keyof typeof PlanPair]}
-              {@const isMonthly = subscription.plan.interval === PlanInterval.MONTHLY}
-              <Button
-                onclick={() => {
-                  Dialog.confirm({
-                    title: isMonthly ? '연간 플랜으로 전환하시겠어요?' : '월간 플랜으로 전환하시겠어요?',
-                    message: isMonthly
-                      ? `다음 결제일(${dayjs(subscription.expiresAt).formatAsDate()})부터 연간 플랜(49,000원/년)이 적용돼요.`
-                      : `다음 결제일(${dayjs(subscription.expiresAt).formatAsDate()})부터 월간 플랜(4,900원/월)이 적용돼요.`,
-                    actionLabel: '전환하기',
-                    actionHandler: async () => {
-                      await schedulePlanChange({ planId: targetPlanId });
-                      cache.invalidate({ __typename: 'User', id: $user.id, field: 'subscription' });
-                      cache.invalidate({ __typename: 'User', id: $user.id, field: 'nextSubscription' });
-                      mixpanel.track('change_plan', {
-                        from: isMonthly ? 'monthly' : 'yearly',
-                        to: isMonthly ? 'yearly' : 'monthly',
-                      });
-                    },
-                  });
-                }}
-                size="sm"
-                variant="secondary"
-              >
-                {isMonthly ? '연간 플랜으로 전환' : '월간 플랜으로 전환'}
-              </Button>
-            {/snippet}
-          </SettingsRow>
-        {/if}
-
-        {#if subscription.state === SubscriptionState.WILL_EXPIRE && !$user.nextSubscription}
-          <SettingsDivider />
-
-          <SettingsRow>
-            {#snippet label()}
-              구독 재개
-            {/snippet}
-            {#snippet description()}
-              해지를 취소하고 다음 결제일부터 자동 갱신을 계속해요.
-            {/snippet}
-            {#snippet value()}
-              <Button
-                onclick={() => {
-                  Dialog.confirm({
-                    title: '구독 해지를 취소하시겠어요?',
-                    message: '구독이 계속 유지되며, 다음 결제일에 자동으로 결제돼요.',
-                    actionLabel: '해지 취소',
-                    actionHandler: async () => {
-                      await cancelSubscriptionCancellation();
-                      mixpanel.track('resume_subscription');
-                    },
-                  });
-                }}
-                size="sm"
-                variant="secondary"
-              >
-                해지 취소
-              </Button>
-            {/snippet}
-          </SettingsRow>
-        {/if}
-      </SettingsCard>
-
-      {#if $user.nextSubscription}
-        {@const nextSubscription = $user.nextSubscription}
-        <div class={css({ marginTop: '16px' })}>
-          <p class={css({ fontSize: '13px', fontWeight: 'medium', color: 'text.default', marginBottom: '12px' })}>다음 플랜 (예정)</p>
-          <SettingsCard>
-            <SettingsRow>
-              {#snippet label()}
-                {nextSubscription.plan.name} 플랜
-              {/snippet}
-              {#snippet description()}
-                {dayjs(nextSubscription.startsAt).formatAsDate()}부터 시작
-              {/snippet}
-              {#snippet value()}
-                <Button
-                  onclick={() => {
-                    Dialog.confirm({
-                      title: '플랜 전환을 취소하시겠어요?',
-                      message: '현재 플랜이 계속 유지돼요.',
-                      actionLabel: '전환 취소',
-                      actionHandler: async () => {
-                        await cancelPlanChange();
-                        cache.invalidate({ __typename: 'User', id: $user.id, field: 'subscription' });
-                        cache.invalidate({ __typename: 'User', id: $user.id, field: 'nextSubscription' });
-                        mixpanel.track('cancel_plan_change');
-                      },
-                    });
-                  }}
-                  size="sm"
-                  variant="secondary"
-                >
-                  전환 취소
-                </Button>
-              {/snippet}
-            </SettingsRow>
-          </SettingsCard>
-        </div>
-      {/if}
-    {/if}
-  </div>
+    <SettingsCard>
+      <SettingsRow>
+        {#snippet label()}
+          타이피 BASIC ACCESS
+        {/snippet}
+        {#snippet description()}
+          타이피의 기본 기능을 무료로 이용할 수 있어요.
+        {/snippet}
+        {#snippet value()}
+          <Button onclick={() => (updatePaymentMethodOpen = true)} size="sm" variant="secondary">업그레이드</Button>
+        {/snippet}
+      </SettingsRow>
+    </SettingsCard>
+  </div> -->
 
   <!-- Payment Methods Section -->
   <div>
@@ -352,8 +175,7 @@
     </div>
   </div>
 
-  {#if $user.subscription?.state === SubscriptionState.ACTIVE || $user.subscription?.state === SubscriptionState.IN_GRACE_PERIOD}
-    <!-- Subscription Cancellation Section -->
+  <!-- {#if $user.subscription?.state === SubscriptionState.ACTIVE || $user.subscription?.state === SubscriptionState.IN_GRACE_PERIOD}
     <div>
       <h2 class={css({ fontSize: '16px', fontWeight: 'semibold', color: 'text.default', marginBottom: '24px' })}>구독 해지</h2>
 
@@ -379,7 +201,7 @@
         </SettingsRow>
       </SettingsCard>
     </div>
-  {/if}
+  {/if} -->
 </div>
 
 <UpdatePaymentMethodModal {$user} bind:open={updatePaymentMethodOpen} />

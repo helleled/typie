@@ -47,10 +47,6 @@
 
           subscription {
             id
-
-            plan {
-              id
-            }
           }
         }
       }

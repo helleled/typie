@@ -57,7 +57,6 @@
             postCount
             subscription {
               id
-              state
             }
           }
         }

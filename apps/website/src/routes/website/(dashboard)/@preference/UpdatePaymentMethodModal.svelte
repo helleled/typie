@@ -47,21 +47,8 @@
     ) {
       subscribePlanWithBillingKey(input: $input) {
         id
-
-        user {
-          id
-          ...DashboardLayout_PlanUsageWidget_user
-          ...DashboardLayout_UserMenu_user
-          ...Editor_BottomToolbar_FontFamily_user
-          ...Editor_BottomToolbar_FontWeight_user
-
-          sites {
-            id
-
-            ...Editor_TopToolbar_site
-            ...Editor_Limit_site
-          }
-        }
+        userId
+        planId
       }
     }
   `);

@@ -1,12 +1,10 @@
-import dedent from 'dedent';
 import { nanoid } from 'nanoid';
-import { redis } from '@/cache';
+import { store } from './runtime/store';
 
 export class Lock {
   #id: string;
 
   #lockKey: string;
-  #waitKey: string;
 
   #acquired = false;
   #timer?: NodeJS.Timeout;
@@ -16,7 +14,6 @@ export class Lock {
     this.#id = nanoid();
 
     this.#lockKey = `lock:${key}`;
-    this.#waitKey = `lock:wait:${key}`;
 
     this.#controller = new AbortController();
   }
@@ -29,26 +26,24 @@ export class Lock {
     const deadline = Date.now() + 30_000;
 
     while (Date.now() < deadline) {
-      const acquired = await redis.set(this.#lockKey, this.#id, 'EX', 30, 'NX');
-      if (acquired === 'OK') {
+      const currentValue = store.get(this.#lockKey);
+      if (currentValue === null) {
+        store.set(this.#lockKey, this.#id, { ex: 30 });
         this.#acquired = true;
         this.#start();
         return true;
       }
 
-      const remainingTime = Math.ceil((deadline - Date.now()) / 1000);
-      if (remainingTime <= 0) break;
-
-      await redis.del(this.#waitKey);
-      await redis.blpop(this.#waitKey, Math.min(remainingTime, 1));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     return false;
   }
 
   async tryAcquire() {
-    const acquired = await redis.set(this.#lockKey, this.#id, 'EX', 30, 'NX');
-    if (acquired === 'OK') {
+    const currentValue = store.get(this.#lockKey);
+    if (currentValue === null) {
+      store.set(this.#lockKey, this.#id, { ex: 30 });
       this.#acquired = true;
       this.#start();
       return true;
@@ -62,19 +57,9 @@ export class Lock {
     this.#stop();
     this.#controller.abort();
 
-    const script = dedent`
-      if redis.call("get", KEYS[1]) == ARGV[1] then
-        redis.call("del", KEYS[1])
-        redis.call("rpush", KEYS[2], "1")
-        return 1
-      else
-        return 0
-      end
-    `;
-
-    const result = await redis.eval(script, 2, this.#lockKey, this.#waitKey, this.#id);
-
-    if (result === 1) {
+    const currentValue = store.get(this.#lockKey);
+    if (currentValue === this.#id) {
+      store.del(this.#lockKey);
       this.#acquired = false;
       return true;
     }
@@ -85,9 +70,9 @@ export class Lock {
   #start() {
     if (!this.#acquired) return;
 
-    this.#timer = setInterval(async () => {
+    this.#timer = setInterval(() => {
       try {
-        const renewed = await this.#extend();
+        const renewed = this.#extend();
         if (!renewed) {
           this.#stop();
           this.#acquired = false;
@@ -110,19 +95,16 @@ export class Lock {
     }
   }
 
-  async #extend() {
+  #extend() {
     if (!this.#acquired) return false;
 
-    const script = dedent`
-      if redis.call("get", KEYS[1]) == ARGV[1] then
-        return redis.call("expire", KEYS[1], ARGV[2])
-      else
-        return 0
-      end
-    `;
+    const currentValue = store.get(this.#lockKey);
+    if (currentValue === this.#id) {
+      store.set(this.#lockKey, this.#id, { ex: 30 });
+      return true;
+    }
 
-    const result = await redis.eval(script, 1, this.#lockKey, this.#id, 30);
-    return result === 1;
+    return false;
   }
 }
 

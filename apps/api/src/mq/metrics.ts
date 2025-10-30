@@ -1,39 +1,39 @@
 import { metrics, ValueType } from '@opentelemetry/api';
 import { queue, worker } from './bullmq';
 
-const meter = metrics.getMeter('bullmq');
+const meter = metrics.getMeter('scheduler');
 
-export const jobCompletedCounter = meter.createCounter('bullmq.job.completed.total', {
+export const jobCompletedCounter = meter.createCounter('scheduler.job.completed.total', {
   description: 'Total number of completed jobs by job name',
   unit: 'count',
   valueType: ValueType.INT,
 });
 
-export const jobFailedCounter = meter.createCounter('bullmq.job.failed.total', {
+export const jobFailedCounter = meter.createCounter('scheduler.job.failed.total', {
   description: 'Total number of failed jobs by job name',
   unit: 'count',
   valueType: ValueType.INT,
 });
 
-export const jobStartedCounter = meter.createCounter('bullmq.job.started.total', {
+export const jobStartedCounter = meter.createCounter('scheduler.job.started.total', {
   description: 'Total number of started jobs by job name',
   unit: 'count',
   valueType: ValueType.INT,
 });
 
-export const jobDurationHistogram = meter.createHistogram('bullmq.job.duration.milliseconds', {
+export const jobDurationHistogram = meter.createHistogram('scheduler.job.duration.milliseconds', {
   description: 'Job processing duration in milliseconds by job name',
   unit: 'milliseconds',
   valueType: ValueType.INT,
 });
 
-export const jobWaitTimeHistogram = meter.createHistogram('bullmq.job.wait.milliseconds', {
+export const jobWaitTimeHistogram = meter.createHistogram('scheduler.job.wait.milliseconds', {
   description: 'Job wait time from enqueue to execution in milliseconds by job name',
   unit: 'milliseconds',
   valueType: ValueType.INT,
 });
 
-export const queueWaitingGauge = meter.createObservableGauge('bullmq.queue.waiting', {
+export const queueWaitingGauge = meter.createObservableGauge('scheduler.queue.waiting', {
   description: 'Number of jobs waiting in the queue',
   unit: 'count',
   valueType: ValueType.INT,
@@ -44,7 +44,7 @@ queueWaitingGauge.addCallback(async (result) => {
   result.observe(counts.waiting || 0);
 });
 
-export const queueActiveGauge = meter.createObservableGauge('bullmq.queue.active', {
+export const queueActiveGauge = meter.createObservableGauge('scheduler.queue.active', {
   description: 'Number of jobs currently being processed',
   unit: 'count',
   valueType: ValueType.INT,
@@ -55,7 +55,7 @@ queueActiveGauge.addCallback(async (result) => {
   result.observe(counts.active || 0);
 });
 
-export const queueDelayedGauge = meter.createObservableGauge('bullmq.queue.delayed', {
+export const queueDelayedGauge = meter.createObservableGauge('scheduler.queue.delayed', {
   description: 'Number of delayed jobs in the queue',
   unit: 'count',
   valueType: ValueType.INT,
@@ -66,7 +66,7 @@ queueDelayedGauge.addCallback(async (result) => {
   result.observe(counts.delayed || 0);
 });
 
-export const queueFailedGauge = meter.createObservableGauge('bullmq.queue.failed', {
+export const queueFailedGauge = meter.createObservableGauge('scheduler.queue.failed', {
   description: 'Number of failed jobs in the queue',
   unit: 'count',
   valueType: ValueType.INT,

@@ -59,7 +59,7 @@ if (commandExists('redis-server')) {
 
   // Redis 자동 시작 시도
   if (existsSync('/tmp/redis.pid')) {
-    continueWithMeilisearch();
+    showNextSteps();
   } else {
     console.log('  Redis를 백그라운드에서 시작하시겠습니까? (권장)');
     const readline = createInterface({
@@ -77,26 +77,16 @@ if (commandExists('redis-server')) {
         log.success('Redis가 백그라운드에서 시작되었습니다');
       }
       readline.close();
-      continueWithMeilisearch();
+      showNextSteps();
     });
   }
 } else {
   log.warn('Redis가 설치되어 있지 않습니다');
   console.log('  설치: https://redis.io/download\n');
-  continueWithMeilisearch();
+  showNextSteps();
 }
 
-function continueWithMeilisearch() {
-  // Meilisearch
-  if (commandExists('meilisearch')) {
-    log.success('Meilisearch (선택 사항)');
-    console.log('  시작: meilisearch --master-key="masterKey"');
-    console.log('  상태 확인: curl http://localhost:7700/health\n');
-  } else {
-    log.warn('Meilisearch가 설치되어 있지 않습니다 (선택 사항)');
-    console.log('  설치: https://www.meilisearch.com/docs/learn/getting_started/installation\n');
-  }
-
+function showNextSteps() {
   console.log('\n' + colors.bright + '다음 단계:' + colors.reset);
   console.log('  1. 위의 서비스들을 시작하세요');
   console.log('  2. 서비스 상태 확인: ' + colors.cyan + 'bun run check-services' + colors.reset);

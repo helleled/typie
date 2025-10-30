@@ -74,7 +74,6 @@
     "isomorphic-dompurify": "^2.28.0",
     "jose": "^6.1.0",
     "ky": "^1.11.0",
-    "meilisearch": "^0.53.0",
     "nanoid": "^5.1.6",
     "p-map": "^7.0.3",
     "playwright": "^1.56.0",

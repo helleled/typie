@@ -1,15 +1,10 @@
-import DOMPurify from 'isomorphic-dompurify';
 import { match } from 'ts-pattern';
 import { TableCode, validateDbId } from '@/db';
 import { SearchHitType } from '@/enums';
-import { meilisearch } from '@/search';
+import { search, highlightText } from '@/search';
 import { assertSitePermission } from '@/utils/permission';
 import { builder } from '../builder';
 import { Canvas, Post } from '../objects';
-
-/**
- * * Queries
- */
 
 builder.queryFields((t) => ({
   search: t.withAuth({ session: true }).field({
@@ -64,53 +59,27 @@ builder.queryFields((t) => ({
         };
       }
 
-      const result = await meilisearch.multiSearch({
-        federation: {},
-        queries: [
-          {
-            indexUid: 'posts',
-            q: args.query.trim(),
-            filter: [`siteId = ${args.siteId}`],
-            attributesToCrop: ['*'],
-            attributesToHighlight: ['title', 'subtitle', 'text'],
-          },
-          {
-            indexUid: 'canvases',
-            q: args.query.trim(),
-            filter: [`siteId = ${args.siteId}`],
-            attributesToCrop: ['*'],
-            attributesToHighlight: ['title'],
-          },
-        ],
-      });
+      const result = await search(args.query, args.siteId);
 
       return {
-        totalHits: result.estimatedTotalHits ?? 0,
+        totalHits: result.totalHits,
         hits: result.hits.map((hit) =>
-          match(hit._federation?.indexUid)
-            .with('posts', () => ({
+          match(hit.type)
+            .with('post', () => ({
               type: SearchHitType.POST,
-              title: sanitizeHtml(hit._formatted?.title),
-              subtitle: sanitizeHtml(hit._formatted?.subtitle),
-              text: sanitizeHtml(hit._formatted?.text),
+              title: highlightText(hit.title, args.query),
+              subtitle: highlightText(hit.subtitle, args.query),
+              text: highlightText(hit.text, args.query),
               post: hit.id,
             }))
-            .with('canvases', () => ({
+            .with('canvas', () => ({
               type: SearchHitType.CANVAS,
-              title: sanitizeHtml(hit._formatted?.title),
+              title: highlightText(hit.title, args.query),
               canvas: hit.id,
             }))
-            .run(),
+            .exhaustive(),
         ),
       };
     },
   }),
 }));
-
-/**
- * * Utils
- */
-
-const sanitizeHtml = (dirty: string | undefined) => {
-  return dirty ? DOMPurify.sanitize(dirty, { ALLOWED_TAGS: ['em'] }) : undefined;
-};

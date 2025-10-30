@@ -180,14 +180,6 @@ async function checkEnvironment() {
     }
   }
 
-  // Meilisearch는 선택 사항으로 체크
-  if (commandExists('meilisearch')) {
-    log.success('Meilisearch 설치됨');
-  } else {
-    log.warn('Meilisearch가 설치되어 있지 않습니다 (선택 사항)');
-    log.info('  설치: https://www.meilisearch.com/docs/learn/getting_started/installation');
-  }
-
   // Doppler는 선택 사항
   if (commandExists('doppler')) {
     log.success('Doppler CLI 설치됨');
@@ -230,18 +222,12 @@ async function setupEnvironment() {
 
     const databaseUrl = await prompt('PostgreSQL 연결 URL (예: postgresql://user:password@localhost:5432/typie)');
     const redisUrl = (await prompt('Redis 연결 URL (기본값: redis://localhost:6379)')) || 'redis://localhost:6379';
-    const meilisearchUrl = (await prompt('Meilisearch URL (기본값: http://localhost:7700)')) || 'http://localhost:7700';
-    const meilisearchApiKey = (await prompt('Meilisearch API Key (기본값: masterKey)')) || 'masterKey';
 
     const apiEnv = `# 데이터베이스
 DATABASE_URL=${databaseUrl}
 
 # Redis
 REDIS_URL=${redisUrl}
-
-# Meilisearch
-MEILISEARCH_URL=${meilisearchUrl}
-MEILISEARCH_API_KEY=${meilisearchApiKey}
 
 # 서버 설정
 LISTEN_PORT=8080
@@ -398,31 +384,6 @@ async function verifyServices() {
     log.warn('Redis에 연결할 수 없습니다. Redis가 실행 중인지 확인하세요.');
     log.info('  시작: redis-server');
   }
-
-  // Meilisearch 연결 테스트
-  if (commandExists('meilisearch')) {
-    try {
-      const apiEnvPath = path.join(projectRoot, 'apps/api/.env');
-      if (existsSync(apiEnvPath)) {
-        const envContent = readFileSync(apiEnvPath, 'utf8');
-        const meilisearchUrlMatch = envContent.match(/MEILISEARCH_URL=(.+)/);
-
-        if (meilisearchUrlMatch) {
-          const meilisearchUrl = meilisearchUrlMatch[1].trim();
-          const response = await fetch(`${meilisearchUrl}/health`);
-
-          if (response.ok) {
-            log.success('Meilisearch 연결 성공');
-          } else {
-            throw new Error('Health check failed');
-          }
-        }
-      }
-    } catch {
-      log.warn('Meilisearch에 연결할 수 없습니다. Meilisearch가 실행 중인지 확인하세요.');
-      log.info('  시작: meilisearch --master-key="masterKey"');
-    }
-  }
 }
 
 // 6. 빌드 단계
@@ -467,7 +428,7 @@ function printSummary() {
   if (hasDockerCompose) {
     console.log(`  1. ${colors.cyan}Docker Compose로 서비스 시작 (권장):${colors.reset}`);
     console.log(`     ${colors.dim}docker-compose up -d${colors.reset}`);
-    console.log(`     ${colors.dim}# PostgreSQL, Redis, Meilisearch가 자동으로 시작됩니다${colors.reset}\n`);
+    console.log(`     ${colors.dim}# PostgreSQL과 Redis가 자동으로 시작됩니다${colors.reset}\n`);
   } else {
     console.log(`  1. ${colors.cyan}PostgreSQL을 시작하세요:${colors.reset}`);
     console.log(`     ${colors.dim}brew services start postgresql (macOS)${colors.reset}`);
@@ -475,12 +436,9 @@ function printSummary() {
 
     console.log(`  2. ${colors.cyan}Redis를 시작하세요:${colors.reset}`);
     console.log(`     ${colors.dim}redis-server${colors.reset}\n`);
-
-    console.log(`  3. ${colors.cyan}Meilisearch를 시작하세요 (선택 사항):${colors.reset}`);
-    console.log(`     ${colors.dim}meilisearch --master-key="masterKey"${colors.reset}\n`);
   }
 
-  const nextStep = hasDockerCompose ? '2' : '4';
+  const nextStep = hasDockerCompose ? '2' : '3';
   console.log(`  ${nextStep}. ${colors.cyan}개발 서버를 시작하세요:${colors.reset}`);
   console.log(`     ${colors.dim}bun run dev${colors.reset}     # 모든 앱 시작`);
   console.log(`     ${colors.dim}또는${colors.reset}`);

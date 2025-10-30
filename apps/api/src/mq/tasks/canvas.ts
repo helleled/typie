@@ -8,7 +8,7 @@ import { CanvasContents, Canvases, CanvasSnapshotContributors, CanvasSnapshots, 
 import { EntityState } from '@/enums';
 import { Lock } from '@/lock';
 import { pubsub } from '@/pubsub';
-import { meilisearch } from '@/search';
+import { indexCanvas, deleteCanvasFromIndex } from '@/search';
 import { compressZstd, decompressZstd } from '@/utils/compression';
 import { enqueueJob } from '../index';
 import { defineCron, defineJob } from '../types';
@@ -427,15 +427,9 @@ export const CanvasIndexJob = defineJob('canvas:index', async (canvasId: string)
     .then(firstOrThrow);
 
   if (canvas.state === EntityState.ACTIVE) {
-    await meilisearch.index('canvases').addDocuments([
-      {
-        id: canvas.id,
-        siteId: canvas.siteId,
-        title: canvas.title,
-      },
-    ]);
+    indexCanvas(canvas.id, canvas.siteId, canvas.title);
   } else {
-    await meilisearch.index('canvases').deleteDocument(canvas.id);
+    deleteCanvasFromIndex(canvas.id);
   }
 });
 

@@ -31,23 +31,6 @@ services:
       timeout: 5s
       retries: 5
 
-  meilisearch:
-    image: getmeili/meilisearch:v1.7
-    container_name: typie-meilisearch
-    environment:
-      MEILI_MASTER_KEY: masterKey
-      MEILI_ENV: development
-    ports:
-      - '7700:7700'
-    volumes:
-      - meilisearch_data:/meili_data
-    healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:7700/health']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
 volumes:
   postgres_data:
   redis_data:
-  meilisearch_data:

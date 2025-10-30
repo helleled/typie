@@ -4,7 +4,6 @@ import { Anthropic } from '@anthropic-ai/sdk';
 import { WebClient } from '@slack/web-api';
 import dayjs from 'dayjs';
 import dedent from 'dedent';
-import postgres from 'postgres';
 import { env } from '@/env';
 import * as aws from '@/external/aws';
 import * as storage from '@/storage/local';
@@ -21,15 +20,21 @@ type SlackAppMentionEventPayload = {
   event_ts: string;
 };
 
-const sql = postgres(env.DATABASE_URL, {
-  prepare: false,
-});
+// BMO uses PostgreSQL queries, which are not compatible with SQLite
+// This feature is disabled when using SQLite
+const sql: any = null;
 
 const anthropic = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
 const slack = new WebClient(env.SLACK_BOT_TOKEN);
 
 const executeQuery = async (query: string) => {
   try {
+    if (!sql) {
+      return {
+        success: false,
+        error: 'BMO is only available with PostgreSQL',
+      };
+    }
     return await sql.begin('READ ONLY', async (sql) => {
       const result = await sql.unsafe(query);
 
@@ -164,6 +169,9 @@ const getSchemaQuery = dedent`
 // spell-checker:enable
 
 const getDatabaseSchema = async () => {
+  if (!sql) {
+    return null;
+  }
   if (!schema) {
     await sql.begin('READ ONLY', async (sql) => {
       const result = await sql.unsafe(getSchemaQuery);

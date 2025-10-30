@@ -28,7 +28,10 @@ export type Database = typeof db;
 export type Transaction = BaseSQLiteDatabase<'sync', any, any>;
 
 export async function runMigrations() {
-  migrate(db, { migrationsFolder: './drizzle' });
+  // Migrations are applied using `drizzle-kit push` instead of migrate()
+  // This is because drizzle-kit generate creates migrations with backticks
+  // which are not compatible with SQLite's syntax
+  // migrate(db, { migrationsFolder: './drizzle' });
 }
 
 export * from './schemas/codes';

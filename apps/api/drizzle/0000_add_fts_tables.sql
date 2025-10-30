@@ -1,3 +1,7 @@
+-- Drop existing regular FTS tables
+DROP TABLE IF EXISTS posts_fts;
+DROP TABLE IF EXISTS canvases_fts;
+
 -- Add FTS5 virtual tables for full-text search
 
 -- Posts FTS table

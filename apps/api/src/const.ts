@@ -16,8 +16,8 @@ export const PlanPair = {
 } as const;
 
 export const defaultPlanRules: PlanRules = {
-  maxTotalCharacterCount: 16_000,
-  maxTotalBlobSize: 20 * 1000 * 1000,
+  maxTotalCharacterCount: -1,
+  maxTotalBlobSize: -1,
 };
 
 export const SUBSCRIPTION_GRACE_DAYS = 7;

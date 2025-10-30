@@ -8,10 +8,13 @@
 # 1. 서비스 시작 (Docker Compose 사용 시 - 권장)
 docker-compose up -d
 
-# 2. 의존성 설치 및 개발 환경 설정
+# 2. 환경 변수 설정
+cp .env.local.example .env.local
+
+# 3. 의존성 설치 및 개발 환경 설정
 bun run setup
 
-# 3. 개발 서버 시작
+# 4. 개발 서버 시작
 bun run dev
 ```
 
@@ -116,6 +119,7 @@ bun run bootstrap # Git 훅 설치 (Lefthook)
 ## 문서
 
 - [개발 환경 설정 가이드](./SETUP.md)
+- [환경 변수 설정 가이드](./ENVIRONMENT.md)
 - [코드 스타일 가이드](./CLAUDE.md)
 
 ## 라이센스

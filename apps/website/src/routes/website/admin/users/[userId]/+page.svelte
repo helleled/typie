@@ -40,7 +40,6 @@
           plan {
             id
             name
-            availability
           }
         }
         credit
@@ -451,13 +450,6 @@
                 <span class={css({ fontSize: '11px', color: 'amber.400' })}>EXPIRES</span>
                 <span class={css({ fontSize: '12px', color: 'amber.500' })}>
                   {dayjs($query.adminUser.subscription.expiresAt).formatAsDateTime()}
-                </span>
-              </div>
-
-              <div class={flex({ alignItems: 'center', justifyContent: 'space-between' })}>
-                <span class={css({ fontSize: '11px', color: 'amber.400' })}>PAYMENT METHOD</span>
-                <span class={css({ fontSize: '12px', color: 'amber.500' })}>
-                  [{$query.adminUser.subscription.plan.availability}]
                 </span>
               </div>
             </div>

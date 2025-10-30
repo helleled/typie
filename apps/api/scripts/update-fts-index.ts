@@ -3,7 +3,7 @@
 import { eq, inArray } from 'drizzle-orm';
 import { Canvases, db, Entities, PostContents, Posts } from '@/db';
 import { EntityState } from '@/enums';
-import { indexPost, deletePostFromIndex, indexCanvas, deleteCanvasFromIndex } from '@/search';
+import { deleteCanvasFromIndex,deletePostFromIndex, indexCanvas, indexPost } from '@/search';
 
 const CHUNK_SIZE = 100;
 
@@ -161,8 +161,8 @@ try {
   await processCanvasesInChunks();
   await processDeletedCanvasesInChunks();
   console.log('FTS index update completed successfully.');
-} catch (error) {
-  console.error('Error updating FTS index:', error);
+} catch (err) {
+  console.error('Error updating FTS index:', err);
   process.exit(1);
 }
 

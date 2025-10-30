@@ -8,7 +8,7 @@ import { CanvasContents, Canvases, CanvasSnapshotContributors, CanvasSnapshots, 
 import { EntityState } from '@/enums';
 import { Lock } from '@/lock';
 import { pubsub } from '@/pubsub';
-import { indexCanvas, deleteCanvasFromIndex } from '@/search';
+import { deleteCanvasFromIndex,indexCanvas } from '@/search';
 import { compressZstd, decompressZstd } from '@/utils/compression';
 import { enqueueJob } from '../index';
 import { defineCron, defineJob } from '../types';

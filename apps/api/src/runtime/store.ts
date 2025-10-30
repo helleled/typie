@@ -121,7 +121,7 @@ class LocalStore {
   }
 
   keys(pattern: string): string[] {
-    const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+    const regex = new RegExp('^' + pattern.replaceAll('*', '.*') + '$');
     const keys: string[] = [];
     
     for (const key of this.#store.keys()) {

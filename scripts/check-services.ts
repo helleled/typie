@@ -33,7 +33,7 @@ const projectRoot = path.join(import.meta.dir, '..');
 async function checkServices() {
   log.title('오프라인 개발 환경 상태 확인');
 
-  let allHealthy = true;
+  const allHealthy = true;
 
   // SQLite 데이터베이스 체크
   const dbPath = path.join(projectRoot, 'apps/api/data/typie.db');

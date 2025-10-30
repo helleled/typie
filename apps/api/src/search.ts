@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { sqlite } from '@/db';
 
-export interface SearchHit {
+export type SearchHit = {
   id: string;
   siteId: string;
   title?: string;
@@ -11,7 +11,7 @@ export interface SearchHit {
   rank: number;
 }
 
-export interface SearchResult {
+export type SearchResult = {
   totalHits: number;
   hits: SearchHit[];
 }

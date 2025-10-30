@@ -20,7 +20,6 @@
 </script>
 
 <NodeView
-  as="sup"
   style={css.raw({
     fontSize: '0.75em',
     lineHeight: '0',
@@ -32,6 +31,7 @@
       textDecoration: 'underline',
     },
   })}
+  as="sup"
   {...HTMLAttributes}
   onclick={handleClick}
 >

@@ -9,7 +9,6 @@
 </script>
 
 <NodeView
-  as="ol"
   style={css.raw({
     marginTop: '32px',
     paddingTop: '16px',
@@ -18,6 +17,7 @@
     fontSize: '0.875em',
     color: 'text.subtle',
   })}
+  as="ol"
   {...HTMLAttributes}
   data-footnote-list="true"
 >

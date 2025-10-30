@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
+import { logger } from '@typie/lib';
 import { PlanId } from '@/const';
 import { db, Plans } from '@/db';
 import { PlanAvailability, PlanInterval } from '@/enums';
-import { logger } from '@typie/lib';
 
 const log = logger.getChild('seed');
 
@@ -70,9 +70,9 @@ export async function seedDatabase() {
     });
 
     log.info('Database seeding completed successfully');
-  } catch (error) {
-    log.error('Database seeding failed {*}', { error });
-    throw error;
+  } catch (err) {
+    log.error('Database seeding failed {*}', { error: err });
+    throw err;
   }
 }
 

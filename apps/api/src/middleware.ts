@@ -26,7 +26,7 @@ export const cors = (): MiddlewareHandler => {
       if (!origin) return null;
 
       // In development, be more permissive with localhost origins
-      if (dev && origin.match(/^http:\/\/localhost:\d+$/)) {
+      if (dev && /^http:\/\/localhost:\d+$/.test(origin)) {
         return origin;
       }
 
@@ -37,7 +37,7 @@ export const cors = (): MiddlewareHandler => {
 
       // In production, check if origin matches USERSITE pattern (wildcard subdomains)
       if (!dev && env.USERSITE_URL.includes('*')) {
-        const pattern = env.USERSITE_URL.replace(/\*/g, '[^.]+');
+        const pattern = env.USERSITE_URL.replaceAll('*', '[^.]+');
         const regex = new RegExp(`^${pattern}$`);
         if (regex.test(origin)) {
           return origin;
@@ -50,7 +50,7 @@ export const cors = (): MiddlewareHandler => {
     allowHeaders: ['Content-Type', 'Authorization', 'X-Device-Id', 'X-Client-IP'],
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     exposeHeaders: ['Content-Length', 'Content-Type'],
-    maxAge: 86400, // 24 hours
+    maxAge: 86_400, // 24 hours
   });
 };
 

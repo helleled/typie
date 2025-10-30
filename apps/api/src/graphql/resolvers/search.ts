@@ -1,7 +1,7 @@
 import { match } from 'ts-pattern';
 import { TableCode, validateDbId } from '@/db';
 import { SearchHitType } from '@/enums';
-import { search, highlightText } from '@/search';
+import { highlightText,search } from '@/search';
 import { assertSitePermission } from '@/utils/permission';
 import { builder } from '../builder';
 import { Canvas, Post } from '../objects';

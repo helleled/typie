@@ -29,11 +29,6 @@
 
           plan {
             id
-
-            rule {
-              maxTotalCharacterCount
-              maxTotalBlobSize
-            }
           }
         }
       }
@@ -56,7 +51,7 @@
 
   const app = getAppContext();
 
-  const planRule = $derived($user.subscription?.plan?.rule ?? defaultPlanRules);
+  const planRule = $derived(defaultPlanRules);
 
   const totalCharacterCountProgress = $derived.by(() => {
     if (planRule.maxTotalCharacterCount === -1) {

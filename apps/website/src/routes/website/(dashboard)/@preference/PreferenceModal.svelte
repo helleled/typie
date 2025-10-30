@@ -61,7 +61,6 @@
         ...DashboardLayout_PreferenceModal_FontTab_user
         ...DashboardLayout_PreferenceModal_TemplateTab_user
         ...DashboardLayout_PreferenceModal_PlanTab_user
-        ...DashboardLayout_PreferenceModal_BillingTab_user
         ...DashboardLayout_PreferenceModal_ReferralTab_user
         ...DashboardLayout_PreferenceModal_LaboratoryTab_user
         ...DashboardLayout_PreferenceModal_ShortcutsTab_user

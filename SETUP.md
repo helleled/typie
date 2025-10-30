@@ -43,7 +43,15 @@ Docker Compose를 사용하면 다음 서비스가 자동으로 실행됩니다:
 - **Redis** (포트 6379) - 캐시 및 PubSub
 - **Meilisearch** (포트 7700) - 검색 엔진
 
-Docker Compose를 사용하는 경우 환경 변수는 다음과 같이 설정하세요:
+### 환경 변수 설정
+
+루트 디렉토리에 `.env.local` 파일을 생성하거나 제공된 예제 파일을 복사합니다:
+
+```bash
+cp .env.local.example .env.local
+```
+
+기본 설정은 Docker Compose의 서비스 URL과 연동되도록 이미 설정되어 있습니다:
 
 ```env
 DATABASE_URL=postgresql://typie:typie@localhost:5432/typie
@@ -51,6 +59,8 @@ REDIS_URL=redis://localhost:6379
 MEILISEARCH_URL=http://localhost:7700
 MEILISEARCH_API_KEY=masterKey
 ```
+
+환경 변수에 대한 자세한 설명은 [ENVIRONMENT.md](./ENVIRONMENT.md)를 참조하세요.
 
 ## 수동 설정
 
@@ -130,79 +140,28 @@ bun install
 
 ### 3. 환경 변수 설정
 
-#### API (`apps/api/.env`)
+루트 디렉토리에 `.env.local` 파일을 생성하거나, 각 앱의 `.env.example` 파일을 복사하여 사용합니다:
 
-```env
-# 데이터베이스
-DATABASE_URL=postgresql://user:password@localhost:5432/typie
+```bash
+# 방법 1: 루트 디렉토리에서 (권장)
+cp .env.local.example .env.local
 
-# Redis
-REDIS_URL=redis://localhost:6379
-
-# Meilisearch
-MEILISEARCH_URL=http://localhost:7700
-MEILISEARCH_API_KEY=masterKey
-
-# 서버 설정
-LISTEN_PORT=8080
-AUTH_URL=http://localhost:5173
-WEBSITE_URL=http://localhost:5173
-USERSITE_URL=http://localhost:5173
-
-# OAuth (개발용 더미 값)
-OIDC_CLIENT_ID=dev-client-id
-OIDC_CLIENT_SECRET=dev-client-secret
-OIDC_JWK={"kty":"RSA","n":"dummy","e":"AQAB"}
-
-GOOGLE_OAUTH_CLIENT_ID=dummy
-GOOGLE_OAUTH_CLIENT_SECRET=dummy
-KAKAO_CLIENT_ID=dummy
-KAKAO_CLIENT_SECRET=dummy
-NAVER_CLIENT_ID=dummy
-NAVER_CLIENT_SECRET=dummy
-
-# Apple (개발용 더미 값)
-APPLE_TEAM_ID=dummy
-APPLE_SIGN_IN_KEY_ID=dummy
-APPLE_SIGN_IN_PRIVATE_KEY=dummy
-APPLE_APP_APPLE_ID=0
-APPLE_APP_BUNDLE_ID=dummy
-APPLE_IAP_ISSUER_ID=dummy
-APPLE_IAP_KEY_ID=dummy
-APPLE_IAP_PRIVATE_KEY=dummy
-
-# 결제 (개발용 더미 값)
-PORTONE_API_SECRET=dummy
-PORTONE_CHANNEL_KEY=dummy
-
-# Google Play (개발용 더미 값)
-GOOGLE_PLAY_PACKAGE_NAME=dummy
-GOOGLE_SERVICE_ACCOUNT={}
-
-# 기타 서비스 (개발용 더미 값)
-ANTHROPIC_API_KEY=dummy
-GITHUB_TOKEN=dummy
-IFRAMELY_API_KEY=dummy
-SLACK_BOT_TOKEN=dummy
-SLACK_SIGNING_SECRET=dummy
-SLACK_WEBHOOK_URL=dummy
-SPELLCHECK_API_KEY=dummy
-SPELLCHECK_URL=http://localhost:8081
+# 방법 2: 각 앱별로 설정
+cd apps/api && cp .env.example .env
+cd ../website && cp .env.example .env
+cd ../desktop && cp .env.example .env
+cd ../mobile && cp .env.example .env
 ```
 
-#### Website (`apps/website/.env`)
+기본 설정에는 로컬 개발에 필요한 모든 설정이 포함되어 있습니다:
 
-```env
-# Public 환경 변수
-PUBLIC_AUTH_URL=http://localhost:5173
-PUBLIC_WEBSITE_URL=http://localhost:5173
-PUBLIC_USERSITE_HOST=localhost:5173
-PUBLIC_API_URL=http://localhost:8080
-PUBLIC_ENVIRONMENT=local
+- PostgreSQL: `postgresql://typie:typie@localhost:5432/typie`
+- Redis: `redis://localhost:6379`
+- Meilisearch: `http://localhost:7700` (API 키: `masterKey`)
+- 서비스 URL: `http://localhost:5173` (웹사이트), `http://localhost:8080` (API)
+- OAuth: 개발용 더미 값 (실제 로그인 없이 테스트 가능)
 
-# Sentry (선택 사항)
-# SENTRY_DSN=
-```
+**상세한 환경 변수 설명은 [ENVIRONMENT.md](./ENVIRONMENT.md)를 참조하세요.**
 
 ### 4. 데이터베이스 마이그레이션
 

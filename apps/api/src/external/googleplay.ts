@@ -1,15 +1,28 @@
 import { androidpublisher, auth } from '@googleapis/androidpublisher';
 import { env } from '@/env';
+import type { androidpublisher_v3 } from '@googleapis/androidpublisher';
 
-const client = androidpublisher({
-  version: 'v3',
-  auth: new auth.GoogleAuth({
-    credentials: JSON.parse(env.GOOGLE_SERVICE_ACCOUNT),
-    scopes: ['https://www.googleapis.com/auth/androidpublisher'],
-  }),
-});
+let client: androidpublisher_v3.Androidpublisher | null = null;
+
+if (env.GOOGLE_SERVICE_ACCOUNT && env.GOOGLE_PLAY_PACKAGE_NAME) {
+  try {
+    client = androidpublisher({
+      version: 'v3',
+      auth: new auth.GoogleAuth({
+        credentials: JSON.parse(env.GOOGLE_SERVICE_ACCOUNT),
+        scopes: ['https://www.googleapis.com/auth/androidpublisher'],
+      }),
+    });
+  } catch (err) {
+    console.warn('[Google Play] Invalid credentials, features disabled:', err instanceof Error ? err.message : err);
+  }
+}
 
 export const getSubscription = async (purchaseToken: string) => {
+  if (!client) {
+    throw new Error('Google Play not configured');
+  }
+
   // spell-checker:disable-next-line
   const response = await client.purchases.subscriptionsv2.get({
     packageName: env.GOOGLE_PLAY_PACKAGE_NAME,

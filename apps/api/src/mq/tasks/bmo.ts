@@ -1,14 +1,13 @@
 import '@typie/lib/dayjs';
 
 import { Anthropic } from '@anthropic-ai/sdk';
-import { GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { WebClient } from '@slack/web-api';
 import dayjs from 'dayjs';
 import dedent from 'dedent';
 import postgres from 'postgres';
 import { env } from '@/env';
 import * as aws from '@/external/aws';
+import * as storage from '@/storage/local';
 import { generateChart } from '@/utils/chart-generation';
 import { defineJob } from '../types';
 import type { ChartData } from '@/utils/chart-generation';
@@ -349,7 +348,7 @@ export const ProcessBmoMentionJob = defineJob('bmo:process-mention', async (even
       {
         name: 'upload_to_s3',
         description:
-          'S3 버킷에 데이터를 업로드하고 다운로드 URL을 생성합니다. JSON, CSV, 텍스트 등 다양한 형식의 데이터를 업로드할 수 있습니다.',
+          '로컬 스토리지에 데이터를 업로드하고 다운로드 URL을 생성합니다. JSON, CSV, 텍스트 등 다양한 형식의 데이터를 업로드할 수 있습니다.',
         input_schema: {
           type: 'object',
           properties: {
@@ -489,7 +488,7 @@ export const ProcessBmoMentionJob = defineJob('bmo:process-mention', async (even
         * CSV, JSON 형식의 원본 데이터를 공유해야 할 때
         * 정기 리포트나 백업 데이터를 보관할 때
         * 여러 사람과 데이터를 공유해야 할 때
-      - 특징: 7일간 유효한 다운로드 링크 제공
+      - 특징: 로컬 스토리지에 저장되고 다운로드 링크 제공
 
       ## create_chart 도구
       - 용도: 데이터를 시각적으로 표현하여 인사이트 전달
@@ -615,35 +614,25 @@ export const ProcessBmoMentionJob = defineJob('bmo:process-mention', async (even
 
             if (toolInput.filename && toolInput.content) {
               try {
-                statusMessage = `📤 S3에 파일 업로드 중: ${toolInput.filename}`;
+                statusMessage = `📤 파일 업로드 중: ${toolInput.filename}`;
                 await updateSlackMessage(responseText + '\n\n' + statusMessage, true);
 
                 const key = `bmo/${aws.createFragmentedS3ObjectKey()}_${toolInput.filename}`;
                 const contentType = toolInput.contentType || 'text/plain';
 
-                await aws.s3.send(
-                  new PutObjectCommand({
-                    Bucket: 'typie-misc',
-                    Key: key,
-                    Body: toolInput.content,
-                    ContentType: contentType,
-                  }),
-                );
+                await storage.putObject({
+                  bucket: storage.BUCKETS.misc,
+                  key,
+                  body: Buffer.from(toolInput.content),
+                  contentType,
+                });
 
-                const downloadUrl = await getSignedUrl(
-                  aws.s3,
-                  new GetObjectCommand({
-                    Bucket: 'typie-misc',
-                    Key: key,
-                  }),
-                  { expiresIn: 7 * 24 * 60 * 60 },
-                );
+                const downloadUrl = storage.getFileUrl(storage.BUCKETS.misc, key);
 
                 toolResult = {
                   success: true,
                   downloadUrl,
                   size: Buffer.byteLength(toolInput.content),
-                  expiresAt: dayjs.kst().add(7, 'days').format('YYYY-MM-DD HH:mm:ss'),
                 };
               } catch (err) {
                 toolResult = {

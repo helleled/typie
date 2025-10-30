@@ -1,18 +1,44 @@
 import path from 'node:path';
-import { CopyObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
-import { createPresignedPost } from '@aws-sdk/s3-presigned-post';
-import { getFontMetadata, toWoff2 } from '@typie/fondue';
 import { and, eq } from 'drizzle-orm';
-import qs from 'query-string';
 import sharp from 'sharp';
 import { rgbaToThumbHash } from 'thumbhash';
 import { db, Files, first, firstOrThrow, FontFamilies, Fonts, Images, TableCode, validateDbId } from '@/db';
 import { FontFamilyState } from '@/enums';
-import { stack } from '@/env';
 import { TypieError } from '@/errors';
 import * as aws from '@/external/aws';
+import * as storage from '@/storage/local';
 import { builder } from '../builder';
 import { Blob, File, Font, Image, isTypeOf } from '../objects';
+
+type FondueModule = {
+  getFontMetadata: (buffer: Uint8Array) => {
+    familyName?: string;
+    fullName?: string;
+    postScriptName?: string;
+    weight: number;
+    style: string;
+  };
+  toWoff2: (buffer: Uint8Array) => Uint8Array;
+};
+
+let fondue: FondueModule | null = null;
+let fondueLoadAttempted = false;
+
+async function loadFondue() {
+  if (fondueLoadAttempted) {
+    return fondue;
+  }
+
+  fondueLoadAttempted = true;
+
+  try {
+    fondue = await import('@typie/fondue');
+    return fondue;
+  } catch {
+    console.warn('[fondue] Native module not available, font features disabled');
+    return null;
+  }
+}
 
 /**
  * * Types
@@ -31,7 +57,7 @@ File.implement({
   fields: (t) => ({
     name: t.exposeString('name'),
 
-    url: t.string({ resolve: (blob) => `https://typie.net/files/${blob.path}` }),
+    url: t.string({ resolve: (blob) => storage.getFileUrl(storage.BUCKETS.usercontents, blob.path, 'files') }),
   }),
 });
 
@@ -42,7 +68,7 @@ Image.implement({
     placeholder: t.exposeString('placeholder'),
 
     ratio: t.float({ resolve: (image) => image.width / image.height }),
-    url: t.string({ resolve: (blob) => `https://typie.net/images/${blob.path}` }),
+    url: t.string({ resolve: (blob) => storage.getFileUrl(storage.BUCKETS.usercontents, blob.path, 'images') }),
   }),
 });
 
@@ -78,24 +104,14 @@ builder.mutationFields((t) => ({
       const ext = path.extname(input.filename);
       const key = `${aws.createFragmentedS3ObjectKey()}${ext}`;
 
-      const req = await createPresignedPost(aws.s3, {
-        Bucket: 'typie-uploads',
-        Key: key,
-        Conditions: [
-          ['content-length-range', 0, 1024 * 1024 * 1024], // 1GB
-          ['starts-with', '$Content-Type', ''],
-        ],
-        Fields: {
-          'x-amz-meta-name': encodeURIComponent(input.filename),
-          'x-amz-meta-user-id': ctx.session.userId,
-        },
-        Expires: 60 * 5, // 5 minutes
-      });
-
       return {
         path: key,
-        url: req.url,
-        fields: req.fields,
+        url: storage.getFileUrl(storage.BUCKETS.uploads, '', '').replace(/\/$/, '') + '/upload',
+        fields: {
+          key,
+          filename: input.filename,
+          userId: ctx.session.userId,
+        },
       };
     },
   }),
@@ -104,45 +120,36 @@ builder.mutationFields((t) => ({
     type: File,
     input: { path: t.input.string() },
     resolve: async (_, { input }, ctx) => {
-      const head = await aws.s3.send(
-        new HeadObjectCommand({
-          Bucket: 'typie-uploads',
-          Key: input.path,
-        }),
-      );
+      const head = await storage.headObject({
+        bucket: storage.BUCKETS.uploads,
+        key: input.path,
+      });
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const fileName = head.Metadata!.name;
+      const fileName = head.metadata.name ?? 'file';
 
-      await aws.s3.send(
-        new CopyObjectCommand({
-          Bucket: 'typie-usercontents',
-          Key: `files/${input.path}`,
-          CopySource: `typie-uploads/${input.path}`,
-          ContentType: head.ContentType,
-          ContentDisposition: `attachment; filename="${fileName}"`,
-          MetadataDirective: 'REPLACE',
-          TaggingDirective: 'REPLACE',
-          Tagging: qs.stringify({
-            UserId: ctx.session.userId,
-            Environment: stack,
-          }),
-        }),
-      );
+      await storage.copyObject({
+        sourceBucket: storage.BUCKETS.uploads,
+        sourceKey: input.path,
+        destinationBucket: storage.BUCKETS.usercontents,
+        destinationKey: `files/${input.path}`,
+        contentType: head.contentType,
+        contentDisposition: `attachment; filename="${fileName}"`,
+        tags: {
+          UserId: ctx.session.userId,
+        },
+      });
 
-      /* eslint-disable @typescript-eslint/no-non-null-assertion */
       return await db
         .insert(Files)
         .values({
           userId: ctx.session.userId,
           name: decodeURIComponent(fileName),
-          size: head.ContentLength!,
-          format: head.ContentType ?? 'application/octet-stream',
+          size: head.contentLength,
+          format: head.contentType ?? 'application/octet-stream',
           path: input.path,
         })
         .returning()
         .then(firstOrThrow);
-      /* eslint-enable @typescript-eslint/no-non-null-assertion */
     },
   }),
 
@@ -153,15 +160,12 @@ builder.mutationFields((t) => ({
       modification: t.input.field({ type: 'JSON', required: false }),
     },
     resolve: async (_, { input }, ctx) => {
-      const object = await aws.s3.send(
-        new GetObjectCommand({
-          Bucket: 'typie-uploads',
-          Key: input.path,
-        }),
-      );
+      const object = await storage.getObject({
+        bucket: storage.BUCKETS.uploads,
+        key: input.path,
+      });
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const buffer = await object.Body!.transformToByteArray();
+      const buffer = object.body;
 
       let img = sharp(buffer, { failOn: 'none' });
 
@@ -202,25 +206,22 @@ builder.mutationFields((t) => ({
         .toBuffer({ resolveWithObject: true });
       const placeholder = rgbaToThumbHash(raw.info.width, raw.info.height, raw.data);
 
-      await aws.s3.send(
-        new PutObjectCommand({
-          Bucket: 'typie-usercontents',
-          Key: `images/${input.path}`,
-          Body: data,
-          ContentType: mimetype,
-          Tagging: qs.stringify({
-            UserId: ctx.session.userId,
-            Environment: stack,
-          }),
-        }),
-      );
+      await storage.putObject({
+        bucket: storage.BUCKETS.usercontents,
+        key: `images/${input.path}`,
+        body: data,
+        contentType: mimetype,
+        tags: {
+          UserId: ctx.session.userId,
+        },
+      });
 
       /* eslint-disable @typescript-eslint/no-non-null-assertion */
       return await db
         .insert(Images)
         .values({
           userId: ctx.session.userId,
-          name: decodeURIComponent(object.Metadata!.name),
+          name: decodeURIComponent(object.metadata.name ?? 'image'),
           size: data.length,
           format: mimetype,
           width: info.width!,
@@ -238,44 +239,42 @@ builder.mutationFields((t) => ({
     type: Font,
     input: { path: t.input.string() },
     resolve: async (_, { input }, ctx) => {
-      const object = await aws.s3.send(
-        new GetObjectCommand({
-          Bucket: 'typie-uploads',
-          Key: input.path,
-        }),
-      );
+      const fondueModule = await loadFondue();
+      if (!fondueModule) {
+        throw new TypieError({ code: 'feature_unavailable', message: 'Font processing is not available in this environment' });
+      }
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const buffer = await object.Body!.transformToByteArray();
+      const object = await storage.getObject({
+        bucket: storage.BUCKETS.uploads,
+        key: input.path,
+      });
 
-      const metadata = getFontMetadata(buffer);
+      const buffer = object.body;
+
+      const metadata = fondueModule.getFontMetadata(buffer);
 
       if (metadata.style !== 'normal') {
         throw new TypieError({ code: 'invalid_font_style' });
       }
 
       const filePath = path.join(path.dirname(input.path), `${path.basename(input.path, path.extname(input.path))}.woff2`);
-      const woff2 = toWoff2(buffer);
+      const woff2 = fondueModule.toWoff2(buffer);
 
       const name =
         metadata.familyName ??
         metadata.fullName ??
         metadata.postScriptName ??
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        path.basename(decodeURIComponent(object.Metadata!.name), path.extname(decodeURIComponent(object.Metadata!.name)));
+        path.basename(decodeURIComponent(object.metadata.name ?? 'font'), path.extname(decodeURIComponent(object.metadata.name ?? 'font')));
 
-      await aws.s3.send(
-        new PutObjectCommand({
-          Bucket: 'typie-usercontents',
-          Key: `fonts/${filePath}`,
-          Body: woff2,
-          ContentType: 'font/woff2',
-          Tagging: qs.stringify({
-            UserId: ctx.session.userId,
-            Environment: stack,
-          }),
-        }),
-      );
+      await storage.putObject({
+        bucket: storage.BUCKETS.usercontents,
+        key: `fonts/${filePath}`,
+        body: woff2,
+        contentType: 'font/woff2',
+        tags: {
+          UserId: ctx.session.userId,
+        },
+      });
 
       let familyId: string | null = null;
       const familyName = metadata.familyName || name;

@@ -4,10 +4,10 @@ pre-commit:
   commands:
     eslint:
       glob: '*'
-      run: bunx eslint --fix --quiet {staged_files}
+      run: bun x eslint --fix --quiet {staged_files}
     prettier:
       glob: '*'
-      run: bunx prettier --write --ignore-unknown {staged_files}
+      run: bun x prettier --write --ignore-unknown {staged_files}
     cspell:
       glob: '*'
-      run: bunx cspell --no-progress --relative --no-must-find-files {staged_files}
+      run: bun x cspell --no-progress --relative --no-must-find-files {staged_files}

@@ -8,7 +8,8 @@ import * as jose from 'jose';
 import { nanoid } from 'nanoid';
 import * as R from 'remeda';
 import { redis } from '@/cache';
-import { db, firstOrThrow, UserSessions } from '@/db';
+import { db, first, firstOrThrow, Users, UserSessions } from '@/db';
+import { dev } from '@/env';
 import { publicKey } from '@/utils';
 import type { Context as HonoContext } from 'hono';
 
@@ -104,31 +105,56 @@ export const deriveContext = async (c: ServerContext): Promise<Context> => {
     ' $loaders': new Map(),
   };
 
-  const authorization = c.req.header('Authorization');
-  const accessToken = authorization?.match(/^Bearer\s+(.+)$/)?.[1];
-  if (accessToken) {
-    try {
-      const { payload } = await jose.jwtVerify(accessToken, publicKey);
-      const { sub, sid } = payload;
+  // Development mode: create a default session for localhost
+  if (dev) {
+    const devUserId = c.req.header('X-User-Id');
 
-      if (!sub || !sid) {
-        throw new Error('Invalid access token');
-      }
-
-      const session = await db
-        .select({ id: UserSessions.id, userId: UserSessions.userId })
-        .from(UserSessions)
-        .where(and(eq(UserSessions.id, sid as string), eq(UserSessions.userId, sub)))
-        .then(firstOrThrow);
-
-      const impersonatedUserId = await redis.get(`admin:impersonate:${session.id}`);
-
+    if (devUserId) {
+      // Use custom user ID if provided via header
       ctx.session = {
-        id: session.id,
-        userId: impersonatedUserId ?? session.userId,
+        id: 'dev-session',
+        userId: devUserId,
       };
-    } catch {
-      throw new HTTPException(401);
+    } else {
+      // Try to find the first user in the database for development
+      const firstUser = await db.select({ id: Users.id }).from(Users).limit(1).then(first);
+
+      if (firstUser) {
+        ctx.session = {
+          id: 'dev-session',
+          userId: firstUser.id,
+        };
+      }
+      // If no user exists, leave session undefined (will require auth where needed)
+    }
+  } else {
+    // Production mode: verify JWT token
+    const authorization = c.req.header('Authorization');
+    const accessToken = authorization?.match(/^Bearer\s+(.+)$/)?.[1];
+    if (accessToken && publicKey) {
+      try {
+        const { payload } = await jose.jwtVerify(accessToken, publicKey as Parameters<typeof jose.jwtVerify>[1]);
+        const { sub, sid } = payload;
+
+        if (!sub || !sid) {
+          throw new Error('Invalid access token');
+        }
+
+        const session = await db
+          .select({ id: UserSessions.id, userId: UserSessions.userId })
+          .from(UserSessions)
+          .where(and(eq(UserSessions.id, sid as string), eq(UserSessions.userId, sub)))
+          .then(firstOrThrow);
+
+        const impersonatedUserId = await redis.get(`admin:impersonate:${session.id}`);
+
+        ctx.session = {
+          id: session.id,
+          userId: impersonatedUserId ?? session.userId,
+        };
+      } catch {
+        throw new HTTPException(401);
+      }
     }
   }
 

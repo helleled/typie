@@ -1,7 +1,13 @@
 import ky from 'ky';
 import { env } from '@/env';
 
+const isConfigured = env.IFRAMELY_API_KEY && env.IFRAMELY_API_KEY.length > 0;
+
 export const unfurl = async (url: string) => {
+  if (!isConfigured) {
+    throw new Error('Iframely not configured');
+  }
+
   const resp = await ky('https://iframe.ly/api/oembed', {
     searchParams: {
       api_key: env.IFRAMELY_API_KEY,

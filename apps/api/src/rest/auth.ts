@@ -9,13 +9,19 @@ import { nanoid } from 'nanoid';
 import qs from 'query-string';
 import { redis } from '@/cache';
 import { db, first, UserSessions } from '@/db';
-import { env } from '@/env';
+import { dev, env } from '@/env';
 import { jwk, privateKey, publicKey } from '@/utils';
 import type { Env } from '@/context';
 
 export const auth = new Hono<Env>();
 
 auth.get('/.well-known/openid-configuration', (c) => {
+  if (dev) {
+    return c.json({ error: 'OIDC disabled in development mode' }, 503);
+  }
+  if (!jwk) {
+    return c.json({ error: 'OIDC not configured' }, 503);
+  }
   return c.json({
     issuer: env.AUTH_URL,
     authorization_endpoint: `${env.AUTH_URL}/authorize`,
@@ -34,13 +40,25 @@ auth.get('/.well-known/openid-configuration', (c) => {
 });
 
 auth.get('/jwks', async (c) => {
-  const exported = await jose.exportJWK(publicKey);
+  if (dev) {
+    return c.json({ error: 'OIDC disabled in development mode' }, 503);
+  }
+  if (!jwk || !publicKey) {
+    return c.json({ error: 'OIDC not configured' }, 503);
+  }
+  const exported = await jose.exportJWK(publicKey as Parameters<typeof jose.exportJWK>[0]);
   return c.json({
     keys: [{ ...exported, kid: jwk.kid, alg: jwk.alg }],
   });
 });
 
 auth.get('/authorize', async (c) => {
+  if (dev) {
+    return c.json({ error: 'OIDC disabled in development mode' }, 503);
+  }
+  if (!jwk || !privateKey) {
+    return c.json({ error: 'OIDC not configured' }, 503);
+  }
   const { client_id, redirect_uri, response_type, scope, state, prompt, code_challenge, code_challenge_method } = c.req.query();
 
   if (!client_id || !redirect_uri || !response_type) {
@@ -122,6 +140,12 @@ auth.get('/authorize', async (c) => {
 });
 
 auth.post('/token', async (c) => {
+  if (dev) {
+    return c.json({ error: 'OIDC disabled in development mode' }, 503);
+  }
+  if (!jwk || !privateKey) {
+    return c.json({ error: 'OIDC not configured' }, 503);
+  }
   const { grant_type, code, redirect_uri, client_id, client_secret, code_verifier } = await c.req.parseBody<Record<string, string>>();
 
   if (!client_id) {
@@ -190,7 +214,7 @@ auth.post('/token', async (c) => {
     })
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       .setProtectedHeader({ alg: jwk.alg!, kid: jwk.kid })
-      .sign(privateKey);
+      .sign(privateKey as Parameters<jose.SignJWT['sign']>[0]);
 
     let idToken;
 
@@ -204,7 +228,7 @@ auth.post('/token', async (c) => {
       })
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         .setProtectedHeader({ alg: jwk.alg!, kid: jwk.kid })
-        .sign(privateKey);
+        .sign(privateKey as Parameters<jose.SignJWT['sign']>[0]);
     }
 
     return c.json({
@@ -220,6 +244,12 @@ auth.post('/token', async (c) => {
 });
 
 auth.get('/userinfo', async (c) => {
+  if (dev) {
+    return c.json({ error: 'OIDC disabled in development mode' }, 503);
+  }
+  if (!publicKey) {
+    return c.json({ error: 'OIDC not configured' }, 503);
+  }
   const authorization = c.req.header('Authorization');
   const accessToken = authorization?.match(/^Bearer\s+(.+)$/)?.[1];
 
@@ -228,7 +258,7 @@ auth.get('/userinfo', async (c) => {
   }
 
   try {
-    const { payload } = await jose.jwtVerify(accessToken, publicKey);
+    const { payload } = await jose.jwtVerify(accessToken, publicKey as Parameters<typeof jose.jwtVerify>[1]);
 
     if (!payload.sub) {
       return c.json({ error: 'invalid_token', error_description: 'Token missing sub claim.' }, 401);

@@ -1,4 +1,3 @@
-import { GetObjectTaggingCommand, PutObjectTaggingCommand } from '@aws-sdk/client-s3';
 import { faker } from '@faker-js/faker';
 import argon2 from 'argon2';
 import dayjs from 'dayjs';
@@ -27,7 +26,7 @@ import { PasswordResetEmail, SignUpEmail } from '@/email/templates';
 import { SingleSignOnProvider, UserState } from '@/enums';
 import { dev, env } from '@/env';
 import { TypieError } from '@/errors';
-import * as aws from '@/external/aws';
+import * as storage from '@/storage/local';
 import { apple, google, kakao, naver } from '@/external/sso';
 import { generateFractionalOrder, generateRandomAvatar, generateRandomName, persistBlobAsImage } from '@/utils';
 import { createSite } from '@/utils/site';
@@ -378,27 +377,21 @@ const createUser = async (tx: Transaction, { email, name: _name, avatarId, refer
     .returning({ path: Images.path })
     .then(firstOrThrow);
 
-  const tagging = await aws.s3.send(
-    new GetObjectTaggingCommand({
-      Bucket: 'typie-usercontents',
-      Key: `images/${avatar.path}`,
-    }),
-  );
+  const existingTags = await storage.getObjectTags({
+    bucket: storage.BUCKETS.usercontents,
+    key: `images/${avatar.path}`,
+  });
 
   const tags: Record<string, string> = {
-    ...Object.fromEntries(tagging.TagSet?.map((tag) => [tag.Key, tag.Value]) ?? []),
+    ...existingTags,
     UserId: user.id,
   };
 
-  await aws.s3.send(
-    new PutObjectTaggingCommand({
-      Bucket: 'typie-usercontents',
-      Key: `images/${avatar.path}`,
-      Tagging: {
-        TagSet: Object.entries(tags).map(([key, value]) => ({ Key: key, Value: value })),
-      },
-    }),
-  );
+  await storage.putObjectTags({
+    bucket: storage.BUCKETS.usercontents,
+    key: `images/${avatar.path}`,
+    tags,
+  });
 
   const widgets = ['onboarding', 'characterCount', 'characterCountChange'];
   let widgetOrder = null;

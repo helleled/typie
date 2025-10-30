@@ -1,0 +1,103 @@
+$ turbo run build
+
+Attention:
+Turborepo now collects completely anonymous telemetry regarding usage.
+This information is used to shape the Turborepo roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://turborepo.com/docs/telemetry
+
+• Packages in scope: @typie/adapter-node, @typie/api, @typie/caddy, @typie/desktop, @typie/fondue, @typie/lib, @typie/lintconfig, @typie/literoom, @typie/mobile, @typie/sark, @typie/styled-system, @typie/tsconfig, @typie/ui, @typie/website
+• Running build in 14 packages
+• Remote caching disabled
+@typie/styled-system:codegen: cache miss, executing 1d409ce421c33ad1
+@typie/styled-system:codegen: $ panda codegen
+@typie/sark:build: cache miss, executing 55e05615b07b9b5a
+@typie/literoom:build: cache miss, executing 577bc6099e070143
+@typie/literoom:build: $ tsup && bun scripts/package-function.ts
+@typie/sark:build: $ tsup
+@typie/literoom:build: [34mCLI[39m Building entry: {"handler":"src/handler.ts"}
+@typie/literoom:build: [34mCLI[39m Using tsconfig: tsconfig.json
+@typie/literoom:build: [34mCLI[39m tsup v8.5.0
+@typie/literoom:build: [34mCLI[39m Using tsup config: /home/engine/project/apps/literoom/tsup.config.ts
+@typie/literoom:build: [34mCLI[39m Target: esnext
+@typie/literoom:build: [34mCLI[39m Cleaning output folder
+@typie/literoom:build: [34mCJS[39m Build start
+@typie/literoom:build: [32mCJS[39m [1mdist/function/handler.cjs [22m[32m4.43 KB[39m
+@typie/literoom:build: [32mCJS[39m ⚡️ Build success in 21ms
+@typie/sark:build: [34mCLI[39m Building entry: {"cli":"src/codegen/cli.ts","vite":"src/codegen/vite/index.ts"}
+@typie/sark:build: [34mCLI[39m Using tsconfig: tsconfig.json
+@typie/sark:build: [34mCLI[39m tsup v8.5.0
+@typie/sark:build: [34mCLI[39m Using tsup config: /home/engine/project/packages/sark/tsup.config.ts
+@typie/sark:build: [34mCLI[39m Target: esnext
+@typie/sark:build: [34mESM[39m Build start
+@typie/sark:build: [32mESM[39m [1mdist/cli.js            [22m[32m877.00 B[39m
+@typie/sark:build: [32mESM[39m [1mdist/vite.js           [22m[32m12.22 KB[39m
+@typie/sark:build: [32mESM[39m [1mdist/chunk-NGMIZBKI.js [22m[32m41.25 KB[39m
+@typie/sark:build: [32mESM[39m ⚡️ Build success in 62ms
+@typie/literoom:build: 1 | // When the subprocess fails, this is the error instance being returned.
+@typie/literoom:build: 2 | // If another error instance is being thrown, it is kept as `error.cause`.
+@typie/literoom:build: 3 | export const getFinalError = (originalError, message, isSync) => {
+@typie/literoom:build: 4 | 	const ErrorClass = isSync ? ExecaSyncError : ExecaError;
+@typie/literoom:build: 5 | 	const options = originalError instanceof DiscardedError ? {} : {cause: originalError};
+@typie/literoom:build: 6 | 	return new ErrorClass(message, options);
+@typie/literoom:build:             ^
+@typie/literoom:build: ExecaError: Command failed with ENOENT: zip -r ../function.zip .
+@typie/literoom:build: Executable not found in $PATH: "zip"
+@typie/literoom:build:  shortMessage: "Command failed with ENOENT: zip -r ../function.zip .\nExecutable not found in $PATH: \"zip\"",
+@typie/literoom:build:  originalMessage: "Executable not found in $PATH: \"zip\"",
+@typie/literoom:build:     command: "zip -r ../function.zip .",
+@typie/literoom:build:  escapedCommand: "zip -r ../function.zip .",
+@typie/literoom:build:         cwd: "/home/engine/project/apps/literoom/dist/function",
+@typie/literoom:build:  durationMs: 47.426481,
+@typie/literoom:build:      failed: true,
+@typie/literoom:build:    timedOut: false,
+@typie/literoom:build:  isCanceled: false,
+@typie/literoom:build:  isGracefullyCanceled: false,
+@typie/literoom:build:  isTerminated: false,
+@typie/literoom:build:  isMaxBuffer: false,
+@typie/literoom:build:  isForcefullyTerminated: false,
+@typie/literoom:build:      stdout: "",
+@typie/literoom:build:      stderr: "",
+@typie/literoom:build:       stdio: [
+@typie/literoom:build:   undefined, "", ""
+@typie/literoom:build: ],
+@typie/literoom:build:   ipcOutput: [],
+@typie/literoom:build:   pipedFrom: [],
+@typie/literoom:build:        code: "ENOENT"
+@typie/literoom:build: 
+@typie/literoom:build:       at getFinalError (/home/engine/project/node_modules/.bun/execa@9.6.0/node_modules/execa/lib/return/final-error.js:6:9)
+@typie/literoom:build:       at makeError (/home/engine/project/node_modules/.bun/execa@9.6.0/node_modules/execa/lib/return/result.js:108:16)
+@typie/literoom:build:       at <anonymous> (/home/engine/project/node_modules/.bun/execa@9.6.0/node_modules/execa/lib/methods/main-async.js:151:17)
+@typie/literoom:build: 
+@typie/literoom:build: 74 | };
+@typie/literoom:build: 75 | 
+@typie/literoom:build: 76 | const spawnSubprocessAsync = ({file, commandArguments, options, startTime, verboseInfo, command, escapedCommand, fileDescriptors}) => {
+@typie/literoom:build: 77 | 	let subprocess;
+@typie/literoom:build: 78 | 	try {
+@typie/literoom:build: 79 | 		subprocess = spawn(...concatenateShell(file, commandArguments, options));
+@typie/literoom:build:                     ^
+@typie/literoom:build: error: Executable not found in $PATH: "zip"
+@typie/literoom:build:       path: "zip",
+@typie/literoom:build:      errno: -2,
+@typie/literoom:build:    syscall: "spawn zip",
+@typie/literoom:build:  spawnargs: [ "-r", "../function.zip", "." ],
+@typie/literoom:build:       code: "ENOENT"
+@typie/literoom:build: 
+@typie/literoom:build:       at spawn (node:child_process:669:35)
+@typie/literoom:build:       at spawn (node:child_process:14:39)
+@typie/literoom:build:       at spawnSubprocessAsync (/home/engine/project/node_modules/.bun/execa@9.6.0/node_modules/execa/lib/methods/main-async.js:79:16)
+@typie/literoom:build:       at execaCoreAsync (/home/engine/project/node_modules/.bun/execa@9.6.0/node_modules/execa/lib/methods/main-async.js:27:32)
+@typie/literoom:build:       at /home/engine/project/apps/literoom/scripts/package-function.ts:4:7
+@typie/literoom:build: 
+@typie/literoom:build: Bun v1.3.1 (Linux x64)
+@typie/literoom:build: error: script "build" exited with code 1
+@typie/literoom:build: ERROR: command finished with error: command (/home/engine/project/apps/literoom) /usr/local/share/bun/bin/bun run build exited (1)
+@typie/literoom#build: command (/home/engine/project/apps/literoom) /usr/local/share/bun/bin/bun run build exited (1)
+
+ Tasks:    0 successful, 3 total
+Cached:    0 cached, 3 total
+  Time:    1.762s 
+Failed:    @typie/literoom#build
+
+ ERROR  run failed: command  exited (1)
+error: script "build" exited with code 1

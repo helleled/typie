@@ -1,4 +1,5 @@
 .DS_Store
+Thumbs.db
 
 node_modules/
 build/
@@ -7,9 +8,18 @@ target/
 out/
 .turbo/
 
+# Environment files
 .env
 .env.local
+.env.*.local
+.envrc
+
+# Local development
 kubeconfig
+*.log
+*.pid
+*.seed
+*.pid.lock
 
 infrastructure/machines/secrets.yaml
 infrastructure/machines/patches/secrets.yaml
@@ -27,3 +37,6 @@ vite.config.ts.timestamp-*
 
 .terraform
 .terraform.lock.hcl
+
+# Local storage
+storage/

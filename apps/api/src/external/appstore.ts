@@ -2,39 +2,69 @@ import { AppStoreServerAPIClient, Environment, SignedDataVerifier, Status } from
 import ky from 'ky';
 import { env } from '@/env';
 
-const certificateUrls = [
-  'https://www.apple.com/appleca/AppleIncRootCertificate.cer',
-  'https://www.apple.com/certificateauthority/AppleRootCA-G2.cer',
-  'https://www.apple.com/certificateauthority/AppleRootCA-G3.cer',
-];
+type Clients = {
+  production: AppStoreServerAPIClient;
+  sandbox: AppStoreServerAPIClient;
+} | null;
 
-const certificates = await Promise.all(certificateUrls.map(async (url) => Buffer.from(await ky.get(url).arrayBuffer())));
+type Verifiers = {
+  production: SignedDataVerifier;
+  sandbox: SignedDataVerifier;
+} | null;
 
-const clients = {
-  production: new AppStoreServerAPIClient(
-    env.APPLE_IAP_PRIVATE_KEY,
-    env.APPLE_IAP_KEY_ID,
-    env.APPLE_IAP_ISSUER_ID,
-    env.APPLE_APP_BUNDLE_ID,
-    Environment.PRODUCTION,
-  ),
-  sandbox: new AppStoreServerAPIClient(
-    env.APPLE_IAP_PRIVATE_KEY,
-    env.APPLE_IAP_KEY_ID,
-    env.APPLE_IAP_ISSUER_ID,
-    env.APPLE_APP_BUNDLE_ID,
-    Environment.SANDBOX,
-  ),
-};
+let clients: Clients = null;
+let verifiers: Verifiers = null;
 
-const verifiers = {
-  production: new SignedDataVerifier(certificates, true, Environment.PRODUCTION, env.APPLE_APP_BUNDLE_ID, env.APPLE_APP_APPLE_ID),
-  sandbox: new SignedDataVerifier(certificates, true, Environment.SANDBOX, env.APPLE_APP_BUNDLE_ID, env.APPLE_APP_APPLE_ID),
-};
+const isConfigured =
+  env.APPLE_IAP_PRIVATE_KEY &&
+  env.APPLE_IAP_KEY_ID &&
+  env.APPLE_IAP_ISSUER_ID &&
+  env.APPLE_APP_BUNDLE_ID &&
+  env.APPLE_APP_APPLE_ID;
+
+if (isConfigured) {
+  try {
+    const certificateUrls = [
+      'https://www.apple.com/appleca/AppleIncRootCertificate.cer',
+      'https://www.apple.com/certificateauthority/AppleRootCA-G2.cer',
+      'https://www.apple.com/certificateauthority/AppleRootCA-G3.cer',
+    ];
+
+    const certificates = await Promise.all(certificateUrls.map(async (url) => Buffer.from(await ky.get(url).arrayBuffer())));
+
+    clients = {
+      production: new AppStoreServerAPIClient(
+        env.APPLE_IAP_PRIVATE_KEY,
+        env.APPLE_IAP_KEY_ID,
+        env.APPLE_IAP_ISSUER_ID,
+        env.APPLE_APP_BUNDLE_ID,
+        Environment.PRODUCTION,
+      ),
+      sandbox: new AppStoreServerAPIClient(
+        env.APPLE_IAP_PRIVATE_KEY,
+        env.APPLE_IAP_KEY_ID,
+        env.APPLE_IAP_ISSUER_ID,
+        env.APPLE_APP_BUNDLE_ID,
+        Environment.SANDBOX,
+      ),
+    };
+
+    verifiers = {
+      production: new SignedDataVerifier(certificates, true, Environment.PRODUCTION, env.APPLE_APP_BUNDLE_ID, env.APPLE_APP_APPLE_ID),
+      sandbox: new SignedDataVerifier(certificates, true, Environment.SANDBOX, env.APPLE_APP_BUNDLE_ID, env.APPLE_APP_APPLE_ID),
+    };
+  } catch (err) {
+    console.warn('[App Store] Invalid credentials, features disabled:', err instanceof Error ? err.message : err);
+  }
+}
 
 const environments = ['production', 'sandbox'] as const;
 
 export const getSubscription = async (transactionId: string) => {
+  if (!clients || !verifiers) {
+    throw new Error('App Store not configured');
+  }
+
   for (const environment of environments) {
     const client = clients[environment];
     const verifier = verifiers[environment];
@@ -54,6 +84,10 @@ export const getSubscription = async (transactionId: string) => {
 };
 
 export const decodeNotification = async (signedPayload: string) => {
+  if (!verifiers) {
+    throw new Error('App Store not configured');
+  }
+
   for (const environment of environments) {
     const verifier = verifiers[environment];
 

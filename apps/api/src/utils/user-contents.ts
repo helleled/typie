@@ -1,11 +1,9 @@
 import path from 'node:path';
-import { PutObjectCommand } from '@aws-sdk/client-s3';
-import qs from 'query-string';
 import sharp from 'sharp';
 import { rgbaToThumbHash } from 'thumbhash';
 import { db, firstOrThrow, Images } from '@/db';
-import { stack } from '@/env';
 import * as aws from '@/external/aws';
+import * as storage from '@/storage/local';
 
 type PersistBlobAsImageParams = { userId?: string; file: File };
 export const persistBlobAsImage = async ({ userId, file }: PersistBlobAsImageParams) => {
@@ -43,18 +41,15 @@ export const persistBlobAsImage = async ({ userId, file }: PersistBlobAsImagePar
       .then(firstOrThrow);
     /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-    await aws.s3.send(
-      new PutObjectCommand({
-        Bucket: 'typie-usercontents',
-        Key: `images/${key}`,
-        Body: Buffer.from(buffer),
-        ContentType: mimetype,
-        Tagging: qs.stringify({
-          UserId: userId ?? 'anonymous',
-          Environment: stack,
-        }),
-      }),
-    );
+    await storage.putObject({
+      bucket: storage.BUCKETS.usercontents,
+      key: `images/${key}`,
+      body: Buffer.from(buffer),
+      contentType: mimetype,
+      tags: {
+        UserId: userId ?? 'anonymous',
+      },
+    });
 
     return image;
   });

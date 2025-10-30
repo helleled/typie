@@ -909,16 +909,20 @@ type Subscription {
 
 enum SubscriptionState {
   ACTIVE
+  INACTIVE
   EXPIRED
-  IN_GRACE_PERIOD
-  WILL_ACTIVATE
-  WILL_EXPIRE
+  CANCELED
 }
 
 type Subscription_ {
   id: ID!
   planId: ID!
   userId: ID!
+  user: User
+  plan: Plan
+  state: SubscriptionState
+  startsAt: DateTime
+  expiresAt: DateTime
 }
 
 input SyncCanvasInput {

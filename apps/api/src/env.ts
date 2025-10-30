@@ -10,7 +10,7 @@ const schema = z.object({
   APPLE_SIGN_IN_KEY_ID: z.string().default(''),
   APPLE_SIGN_IN_PRIVATE_KEY: z.string().default(''),
   APPLE_TEAM_ID: z.string().default(''),
-  AUTH_URL: z.string().default('http://localhost:4100'),
+  AUTH_URL: z.string().default('http://localhost:5173'),
   DATABASE_URL: z.string(),
   GITHUB_TOKEN: z.string().default(''),
   GOOGLE_OAUTH_CLIENT_ID: z.string().default(''),
@@ -38,8 +38,8 @@ const schema = z.object({
   SLACK_WEBHOOK_URL: z.string().default('http://localhost'),
   SPELLCHECK_API_KEY: z.string().default(''),
   SPELLCHECK_URL: z.string().default('http://localhost'),
-  USERSITE_URL: z.string().default('http://localhost:4000'),
-  WEBSITE_URL: z.string().default('http://localhost:4000'),
+  USERSITE_URL: z.string().default('http://localhost:5173'),
+  WEBSITE_URL: z.string().default('http://localhost:5173'),
 });
 
 export const env = schema.parse(process.env.ENV_JSON ? JSON.parse(process.env.ENV_JSON) : process.env);

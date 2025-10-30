@@ -27,6 +27,14 @@ export async function downloadImage(url: string): Promise<ImageData | null> {
     return null;
   }
 
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    const { env } = await import('@/env');
+    if (env.OFFLINE_MODE) {
+      console.log('[Export Offline] Skipping external image download:', url);
+      return null;
+    }
+  }
+
   const response = await fetch(url);
   if (!response.ok) {
     console.error(`Failed to fetch image: ${response.statusText}`);

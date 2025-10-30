@@ -12,6 +12,10 @@ const createOAuthClient = () => {
 };
 
 export const generateAuthorizationUrl = (state: string, email?: string | null) => {
+  if (env.OFFLINE_MODE) {
+    throw new Error('Google Sign-In is unavailable in offline mode');
+  }
+
   const client = createOAuthClient();
   return client.generateAuthUrl({
     scope: ['email', 'profile'],
@@ -22,6 +26,10 @@ export const generateAuthorizationUrl = (state: string, email?: string | null) =
 };
 
 export const authorizeUser = async (params: Record<string, string>): Promise<ExternalUser> => {
+  if (env.OFFLINE_MODE) {
+    throw new Error('Google Sign-In is unavailable in offline mode');
+  }
+
   if (!params.code) {
     throw new Error('Invalid parameters');
   }

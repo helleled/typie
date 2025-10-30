@@ -61,6 +61,10 @@ if (isConfigured) {
 const environments = ['production', 'sandbox'] as const;
 
 export const getSubscription = async (transactionId: string) => {
+  if (env.OFFLINE_MODE) {
+    throw new Error('App Store integration is unavailable in offline mode');
+  }
+
   if (!clients || !verifiers) {
     throw new Error('App Store not configured');
   }
@@ -84,6 +88,10 @@ export const getSubscription = async (transactionId: string) => {
 };
 
 export const decodeNotification = async (signedPayload: string) => {
+  if (env.OFFLINE_MODE) {
+    throw new Error('App Store integration is unavailable in offline mode');
+  }
+
   if (!verifiers) {
     throw new Error('App Store not configured');
   }

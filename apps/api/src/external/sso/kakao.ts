@@ -5,6 +5,10 @@ import { env } from '@/env';
 import type { ExternalUser } from './types';
 
 export const generateAuthorizationUrl = (state: string) => {
+  if (env.OFFLINE_MODE) {
+    throw new Error('Kakao Sign-In is unavailable in offline mode');
+  }
+
   return qs.stringifyUrl({
     url: 'https://kauth.kakao.com/oauth/authorize',
     query: {
@@ -17,6 +21,10 @@ export const generateAuthorizationUrl = (state: string) => {
 };
 
 export const authorizeUser = async (params: Record<string, string>): Promise<ExternalUser> => {
+  if (env.OFFLINE_MODE) {
+    throw new Error('Kakao Sign-In is unavailable in offline mode');
+  }
+
   let accessToken = params.access_token;
 
   if (!accessToken) {

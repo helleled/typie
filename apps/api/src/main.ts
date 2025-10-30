@@ -12,6 +12,7 @@ import { graphql } from '@/graphql';
 import { cors, security } from '@/middleware';
 import { rest } from '@/rest';
 import * as storage from '@/storage/local';
+import { seedDatabase } from '../scripts/seed';
 
 const log = logger.getChild('main');
 
@@ -21,6 +22,9 @@ await storage.initializeStorage();
 log.info('Running database migrations...');
 runMigrations();
 log.info('Database migrations completed');
+
+// Seed database with initial data
+await seedDatabase();
 
 // Apply security headers middleware
 app.use('*', security());

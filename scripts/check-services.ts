@@ -3,11 +3,10 @@
 /**
  * Service Health Check Script
  *
- * This script checks the health of all required services for the Typie monorepo.
+ * This script checks the health of the offline-first development stack.
  */
 
-import { execSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 
 // ANSI colors
@@ -32,46 +31,31 @@ const log = {
 const projectRoot = path.join(import.meta.dir, '..');
 
 async function checkServices() {
-  log.title('서비스 상태 확인');
+  log.title('오프라인 개발 환경 상태 확인');
 
   let allHealthy = true;
 
-  // PostgreSQL 체크
-  try {
-    const apiEnvPath = path.join(projectRoot, 'apps/api/.env');
-    if (existsSync(apiEnvPath)) {
-      const envContent = readFileSync(apiEnvPath, 'utf8');
-      const databaseUrlMatch = envContent.match(/DATABASE_URL=(.+)/);
-
-      if (databaseUrlMatch) {
-        const databaseUrl = databaseUrlMatch[1].trim();
-        const urlObj = new URL(databaseUrl);
-        const testCommand = `PGPASSWORD="${urlObj.password}" psql -h ${urlObj.hostname} -p ${urlObj.port || 5432} -U ${urlObj.username} -d ${urlObj.pathname.slice(1)} -c "SELECT 1" > /dev/null 2>&1`;
-
-        execSync(testCommand, { stdio: 'pipe' });
-        log.success('PostgreSQL: 연결 성공');
-      } else {
-        log.warn('PostgreSQL: DATABASE_URL을 찾을 수 없음');
-        allHealthy = false;
-      }
-    } else {
-      log.warn('PostgreSQL: .env 파일이 없음');
-      allHealthy = false;
-    }
-  } catch {
-    log.error('PostgreSQL: 연결 실패');
-    log.info('  시작: brew services start postgresql (macOS) 또는 sudo systemctl start postgresql (Linux)');
-    allHealthy = false;
+  // SQLite 데이터베이스 체크
+  const dbPath = path.join(projectRoot, 'apps/api/data/typie.db');
+  const dbDir = path.join(projectRoot, 'apps/api/data');
+  
+  if (existsSync(dbPath)) {
+    log.success('SQLite 데이터베이스: 존재함');
+    log.info(`  위치: ${dbPath}`);
+  } else if (existsSync(dbDir)) {
+    log.warn('SQLite 데이터베이스: 아직 생성되지 않음');
+    log.info('  첫 실행 시 자동으로 생성됩니다');
+  } else {
+    log.info('SQLite 데이터베이스: 첫 실행 시 생성됨');
   }
 
-  // Redis 체크
-  try {
-    execSync('redis-cli ping', { stdio: 'pipe' });
-    log.success('Redis: 연결 성공');
-  } catch {
-    log.error('Redis: 연결 실패');
-    log.info('  시작: redis-server');
-    allHealthy = false;
+  // Storage 디렉토리 체크
+  const storagePath = path.join(projectRoot, 'apps/api/.storage');
+  if (existsSync(storagePath)) {
+    log.success('로컬 스토리지: 초기화됨');
+    log.info(`  위치: ${storagePath}`);
+  } else {
+    log.info('로컬 스토리지: 첫 실행 시 생성됨');
   }
 
   // API 서버 체크
@@ -84,7 +68,7 @@ async function checkServices() {
     }
   } catch {
     log.info('API 서버: 실행 중이지 않음');
-    log.info('  시작: cd apps/api && bun run dev');
+    log.info('  시작: bun run dev');
   }
 
   // Website 체크
@@ -97,15 +81,16 @@ async function checkServices() {
     }
   } catch {
     log.info('Website: 실행 중이지 않음');
-    log.info('  시작: cd apps/website && bun run dev');
+    log.info('  시작: bun run dev');
   }
 
   console.log();
   if (allHealthy) {
-    log.success('모든 필수 서비스가 정상입니다!');
+    log.success('오프라인 개발 환경이 정상입니다!');
+    log.info('개발 서버 시작: bun run dev');
   } else {
-    log.error('일부 서비스에 문제가 있습니다.');
-    process.exit(1);
+    log.warn('일부 서비스가 아직 시작되지 않았습니다.');
+    log.info('개발 서버 시작: bun run dev');
   }
 }
 

@@ -5,18 +5,14 @@
 ## 빠른 시작
 
 ```bash
-# 1. 서비스 시작 (Docker Compose 사용 시 - 권장)
-docker-compose up -d
-
-# 2. 환경 변수 설정
-cp .env.local.example .env.local
-
-# 3. 의존성 설치 및 개발 환경 설정
-bun run setup
-
-# 4. 개발 서버 시작
+# 의존성 설치 및 개발 서버 시작
+bun install
 bun run dev
 ```
+
+**그게 전부입니다!** 🎉
+
+별도의 데이터베이스나 Redis 서버 설정이 필요 없습니다. 모든 데이터는 로컬 SQLite 파일에 저장됩니다.
 
 ## 개발 환경 설정
 
@@ -26,8 +22,6 @@ bun run dev
 
 - [Bun](https://bun.sh) 1.3.0+
 - [Node.js](https://nodejs.org) 22+
-- [PostgreSQL](https://www.postgresql.org) 12+
-- [Redis](https://redis.io) 6+
 
 ### 자동 설정
 
@@ -39,8 +33,6 @@ bun run setup
 
 - 필수 도구 확인
 - 의존성 설치
-- 환경 변수 설정
-- 데이터베이스 마이그레이션
 - 공유 패키지 빌드
 
 ## 프로젝트 구조
@@ -68,11 +60,10 @@ typie/
 
 - **프레임워크**: Hono
 - **GraphQL**: GraphQL Yoga + Pothos
-- **데이터베이스**: PostgreSQL + Drizzle ORM
-- **실시간**: Yjs, Redis, WebSocket
-- **큐**: BullMQ
-- **검색**: Meilisearch
+- **데이터베이스**: SQLite + Drizzle ORM (오프라인 개발)
+- **실시간**: Yjs, WebSocket
 - **인증**: 커스텀 OIDC 제공자
+- **스토리지**: 로컬 파일 시스템
 
 ### 프론트엔드
 
@@ -91,8 +82,8 @@ typie/
 ```bash
 # 개발 환경
 bun run setup          # 개발 환경 자동 설정
-bun run dev-services   # 필요한 서비스 시작 가이드
-bun run check-services # 서비스 상태 확인
+bun run dev-services   # 오프라인 개발 환경 정보
+bun run check-services # 개발 환경 상태 확인
 
 # 개발
 bun run dev   # 모든 앱의 개발 서버 시작
@@ -115,6 +106,37 @@ bun run bootstrap # Git 훅 설치 (Lefthook)
 
 - **API GraphQL Playground**: http://localhost:8080/graphql
 - **웹사이트**: http://localhost:5173
+
+## 오프라인 개발 환경
+
+Typie는 오프라인 우선 아키텍처를 사용하여 별도의 서비스 설정 없이 바로 개발을 시작할 수 있습니다:
+
+- **SQLite 데이터베이스**: `apps/api/data/typie.db`에 자동 생성
+- **로컬 스토리지**: `apps/api/.storage`에 파일 저장
+- **자동 마이그레이션**: 첫 실행 시 데이터베이스 스키마 자동 생성
+- **자동 시딩**: 기본 플랜 데이터 자동 삽입
+
+### 데이터베이스 관리
+
+```bash
+# 데이터베이스 초기화 (모든 데이터 삭제)
+rm -rf apps/api/data
+
+# Drizzle Studio로 데이터 확인
+cd apps/api && bun x drizzle-kit studio
+```
+
+### 선택 사항
+
+프로덕션과 유사한 환경이 필요한 경우:
+
+```bash
+# Meilisearch (검색 엔진)
+docker-compose up -d meilisearch
+
+# PostgreSQL + Redis
+docker-compose up -d postgres redis
+```
 
 ## 문서
 

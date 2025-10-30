@@ -1,35 +1,15 @@
 #!/bin/bash
-# Test script for localhost setup verification
+# Test script for offline localhost setup verification
 
 set -e
 
 echo "=========================================="
-echo "Typie Localhost Setup Verification"
+echo "Typie Offline Setup Verification"
 echo "=========================================="
 echo ""
 
-# Check if Docker services are running
-echo "1. Checking Docker services..."
-if docker compose ps | grep -q "Up"; then
-    echo "   ✅ Docker services are running"
-else
-    echo "   ❌ Docker services are not running"
-    echo "   Run: docker compose up -d postgres redis"
-    exit 1
-fi
-echo ""
-
-# Check if .env file exists
-echo "2. Checking environment configuration..."
-if [ -f "apps/api/.env" ]; then
-    echo "   ✅ API .env file exists"
-else
-    echo "   ⚠️  API .env file missing (will use defaults)"
-fi
-echo ""
-
 # Check if styled-system is generated
-echo "3. Checking styled-system generation..."
+echo "1. Checking styled-system generation..."
 if [ -d "packages/styled-system/styled-system" ]; then
     echo "   ✅ styled-system generated"
 else
@@ -40,7 +20,7 @@ fi
 echo ""
 
 # Start API server in background
-echo "4. Starting API server..."
+echo "2. Starting API server..."
 cd apps/api
 bun run dev > /tmp/test-api.log 2>&1 &
 API_PID=$!
@@ -61,8 +41,8 @@ fi
 echo ""
 
 # Test health endpoint
-echo "5. Testing health endpoint..."
-HEALTH_RESPONSE=$(curl -s http://localhost:3000/healthz)
+echo "3. Testing health endpoint..."
+HEALTH_RESPONSE=$(curl -s http://localhost:8080/health)
 if echo "$HEALTH_RESPONSE" | grep -q '"*":true'; then
     echo "   ✅ Health check passed: $HEALTH_RESPONSE"
 else
@@ -73,8 +53,8 @@ fi
 echo ""
 
 # Test GraphQL endpoint
-echo "6. Testing GraphQL endpoint..."
-GRAPHQL_RESPONSE=$(curl -s -X POST http://localhost:3000/graphql \
+echo "4. Testing GraphQL endpoint..."
+GRAPHQL_RESPONSE=$(curl -s -X POST http://localhost:8080/graphql \
     -H "Content-Type: application/json" \
     -d '{"query":"query { defaultPlanRule { maxTotalCharacterCount } }"}')
 
@@ -89,8 +69,8 @@ fi
 echo ""
 
 # Test CORS
-echo "7. Testing CORS configuration..."
-CORS_RESPONSE=$(curl -s -I -X OPTIONS http://localhost:3000/graphql \
+echo "5. Testing CORS configuration..."
+CORS_RESPONSE=$(curl -s -I -X OPTIONS http://localhost:8080/graphql \
     -H "Origin: http://localhost:5173" \
     -H "Access-Control-Request-Method: POST")
 
@@ -102,7 +82,7 @@ fi
 echo ""
 
 # Test storage initialization
-echo "8. Testing storage initialization..."
+echo "6. Testing storage initialization..."
 if [ -d "apps/api/.storage" ]; then
     echo "   ✅ Storage directory created"
     echo "   Location: apps/api/.storage"
@@ -113,8 +93,20 @@ else
 fi
 echo ""
 
+# Test SQLite database
+echo "7. Testing SQLite database..."
+if [ -f "apps/api/data/typie.db" ]; then
+    echo "   ✅ SQLite database created"
+    echo "   Location: apps/api/data/typie.db"
+else
+    echo "   ❌ SQLite database not created"
+    kill $API_PID
+    exit 1
+fi
+echo ""
+
 # Cleanup
-echo "9. Cleaning up..."
+echo "8. Cleaning up..."
 kill $API_PID
 wait $API_PID 2>/dev/null || true
 echo "   ✅ API server stopped"
@@ -124,7 +116,7 @@ echo "=========================================="
 echo "✅ All tests passed!"
 echo "=========================================="
 echo ""
-echo "Localhost setup is working correctly."
+echo "Offline setup is working correctly."
 echo "You can now start development with:"
-echo "  cd apps/api && bun run dev"
+echo "  bun run dev"
 echo ""

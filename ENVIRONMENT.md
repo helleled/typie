@@ -1,323 +1,287 @@
 # 환경 변수 설정 가이드
 
-이 문서는 Typie 프로젝트의 환경 변수 설정 방법을 설명합니다.
+이 문서는 Typie 프로젝트의 오프라인 우선 개발 환경에서 환경 변수 설정 방법을 설명합니다.
 
 ## 빠른 시작
 
-### 1. 환경 변수 파일 생성
+### 기본 설정 (환경 변수 불필요)
 
-루트 디렉토리에 `.env.local` 파일을 생성하거나 제공된 예제 파일을 복사합니다:
-
-```bash
-# 루트 디렉토리에서
-cp .env.local.example .env.local
-```
-
-또는 각 앱별로 개별적으로 설정:
+오프라인 개발의 경우 **별도의 환경 변수 설정이 필요 없습니다**:
 
 ```bash
-# API 서버
-cd apps/api
-cp .env.example .env
-
-# 웹사이트
-cd apps/website
-cp .env.example .env
-
-# 데스크톱
-cd apps/desktop
-cp .env.example .env
-
-# 모바일
-cd apps/mobile
-cp .env.example .env
-```
-
-### 2. 필수 서비스 시작
-
-Docker Compose를 사용하여 필수 서비스를 시작합니다:
-
-```bash
-docker-compose up -d
-```
-
-이 명령으로 다음 서비스가 시작됩니다:
-- **PostgreSQL** (포트 5432)
-- **Redis** (포트 6379)
-- **Meilisearch** (포트 7700)
-
-### 3. 데이터베이스 마이그레이션
-
-```bash
-cd apps/api
-bun drizzle-kit migrate
-```
-
-### 4. 개발 서버 실행
-
-```bash
+bun install
 bun run dev
 ```
 
-## 환경 변수 상세 설명
+모든 것이 자동으로 설정됩니다:
+- SQLite 데이터베이스: `apps/api/data/typie.db`
+- 로컬 스토리지: `apps/api/.storage`
+- 인메모리 캐시: Redis 없이 동작
 
-### 필수 환경 변수 (REQUIRED)
+### 선택 사항: 환경 변수 파일 생성
 
-이 변수들은 **반드시** 설정해야 애플리케이션이 정상 작동합니다.
+특정 설정을 변경하려는 경우에만:
+
+```bash
+cp .env.local.example .env.local
+# 필요한 값만 수정
+```
+
+## 환경 변수 카테고리
+
+### 자동 설정 (변경 불필요)
+
+이 변수들은 기본값으로 오프라인 개발에 적합합니다:
 
 #### DATABASE_URL
-- **설명**: PostgreSQL 데이터베이스 연결 URL
-- **기본값**: `postgresql://typie:typie@localhost:5432/typie`
-- **형식**: `postgresql://[사용자]:[비밀번호]@[호스트]:[포트]/[데이터베이스명]`
-- **Docker Compose 사용 시**: 기본값 그대로 사용
+- **기본값**: `./data/typie.db` (SQLite)
+- **설명**: 로컬 SQLite 데이터베이스 경로
+- **변경 시기**: PostgreSQL 사용 시에만
+- **예시**: `postgresql://typie:typie@localhost:5432/typie`
 
 #### REDIS_URL
-- **설명**: Redis 연결 URL (캐시, PubSub, 큐 처리)
-- **기본값**: `redis://localhost:6379`
-- **형식**: `redis://[호스트]:[포트]`
-- **Docker Compose 사용 시**: 기본값 그대로 사용
+- **기본값**: 없음 (인메모리 캐시 사용)
+- **설명**: Redis 연결 URL
+- **변경 시기**: Redis 사용 시에만
+- **예시**: `redis://localhost:6379`
 
-### 선택 환경 변수 (OPTIONAL)
-
-이 변수들은 기본값이 있거나 특정 기능을 사용할 때만 필요합니다.
-
-#### 서버 설정
-
-##### LISTEN_PORT
-- **설명**: API 서버가 실행될 포트
+#### LISTEN_PORT
 - **기본값**: `8080`
-- **사용처**: API 서버
+- **설명**: API 서버 포트
+- **변경 시기**: 포트 충돌 시
 
-##### AUTH_URL
-- **설명**: 인증 서비스 URL
+#### AUTH_URL, WEBSITE_URL, USERSITE_URL
 - **기본값**: `http://localhost:5173`
-- **사용처**: API 서버, 클라이언트 앱
+- **설명**: 서비스 URL 설정
+- **변경 시기**: 포트 변경 시
 
-##### WEBSITE_URL
-- **설명**: 웹사이트 URL
-- **기본값**: `http://localhost:5173`
-- **사용처**: API 서버, 클라이언트 앱
-
-##### USERSITE_URL
-- **설명**: 사용자 사이트 URL
-- **기본값**: `http://localhost:5173`
-- **사용처**: API 서버, 클라이언트 앱
+### 선택 사항 (필요시만 설정)
 
 #### 검색 엔진
 
 ##### MEILISEARCH_URL
+- **기본값**: 없음
 - **설명**: Meilisearch 검색 엔진 URL
-- **기본값**: `http://localhost:7700`
-- **사용처**: API 서버
-- **Docker Compose 사용 시**: 기본값 그대로 사용
-
-##### MEILISEARCH_API_KEY
-- **설명**: Meilisearch API 키
-- **기본값**: `masterKey` (개발용)
-- **사용처**: API 서버
-- **Docker Compose 사용 시**: `masterKey` 사용
+- **필요 시점**: 전체 텍스트 검색 기능 사용 시
+- **설정 예시**:
+  ```bash
+  docker-compose up -d meilisearch
+  MEILISEARCH_URL=http://localhost:7700
+  MEILISEARCH_API_KEY=masterKey
+  ```
 
 #### OAuth 인증
 
-로컬 개발 시에는 더미 값으로 설정되어 있어 OAuth 로그인 없이 테스트할 수 있습니다.
-실제 OAuth 연동이 필요한 경우에만 실제 값을 설정하세요.
+로컬 개발 시 OAuth 없이 개발할 수 있습니다.
 
-##### OIDC_CLIENT_ID
-- **설명**: OIDC 클라이언트 ID
-- **기본값**: `dev-client-id` (개발용)
-- **사용처**: 모든 클라이언트 앱
-
-##### OIDC_CLIENT_SECRET
-- **설명**: OIDC 클라이언트 시크릿
-- **기본값**: `dev-client-secret` (개발용)
-- **사용처**: API 서버, 클라이언트 앱
-
-##### OIDC_JWK
-- **설명**: OIDC JSON Web Key
-- **기본값**: `{"kty":"RSA","n":"dummy","e":"AQAB"}` (개발용)
-- **사용처**: API 서버
+##### OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, OIDC_JWK
+- **기본값**: 개발용 더미 값
+- **필요 시점**: 실제 OAuth 로그인 테스트 시
 
 ##### GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET
-- **설명**: Google OAuth 클라이언트 인증 정보
-- **기본값**: 빈 문자열
-- **사용처**: API 서버
-- **필요 시점**: Google 로그인 기능을 사용할 때
+- **필요 시점**: Google 로그인 기능 테스트 시
 
 ##### KAKAO_CLIENT_ID, KAKAO_CLIENT_SECRET
-- **설명**: Kakao OAuth 클라이언트 인증 정보
-- **기본값**: 빈 문자열
-- **사용처**: API 서버
-- **필요 시점**: Kakao 로그인 기능을 사용할 때
+- **필요 시점**: Kakao 로그인 기능 테스트 시
 
 ##### NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
-- **설명**: Naver OAuth 클라이언트 인증 정보
-- **기본값**: 빈 문자열
-- **사용처**: API 서버
-- **필요 시점**: Naver 로그인 기능을 사용할 때
+- **필요 시점**: Naver 로그인 기능 테스트 시
 
 #### Apple 서비스
 
-Apple 서비스 연동이 필요한 경우에만 설정합니다.
-
 ##### APPLE_TEAM_ID
-- **설명**: Apple Developer Team ID
-- **기본값**: 빈 문자열
-- **필요 시점**: Apple 로그인 또는 IAP를 사용할 때
+- **필요 시점**: Apple 로그인 또는 IAP 테스트 시
 
 ##### APPLE_SIGN_IN_KEY_ID, APPLE_SIGN_IN_PRIVATE_KEY
-- **설명**: Apple Sign In 키 정보
-- **기본값**: 빈 문자열
-- **필요 시점**: Apple 로그인을 사용할 때
-
-##### APPLE_APP_APPLE_ID, APPLE_APP_BUNDLE_ID
-- **설명**: Apple 앱 정보
-- **기본값**: `0` (Apple ID), 빈 문자열 (Bundle ID)
-- **필요 시점**: Apple IAP를 사용할 때
+- **필요 시점**: Apple 로그인 테스트 시
 
 ##### APPLE_IAP_ISSUER_ID, APPLE_IAP_KEY_ID, APPLE_IAP_PRIVATE_KEY
-- **설명**: Apple In-App Purchase API 키 정보
-- **기본값**: 빈 문자열
-- **필요 시점**: Apple IAP를 사용할 때
+- **필요 시점**: Apple IAP 테스트 시
 
 #### 결제 서비스
 
 ##### PORTONE_API_SECRET, PORTONE_CHANNEL_KEY
-- **설명**: PortOne 결제 서비스 인증 정보
-- **기본값**: 빈 문자열
-- **필요 시점**: 결제 기능을 사용할 때
+- **필요 시점**: 결제 기능 테스트 시
 
 ##### GOOGLE_PLAY_PACKAGE_NAME, GOOGLE_SERVICE_ACCOUNT
-- **설명**: Google Play IAP 정보
-- **기본값**: 빈 문자열, `{}`
-- **필요 시점**: Google Play IAP를 사용할 때
+- **필요 시점**: Google Play IAP 테스트 시
 
 #### 외부 API 서비스
 
 ##### ANTHROPIC_API_KEY
-- **설명**: Anthropic AI API 키
-- **기본값**: 빈 문자열
-- **필요 시점**: AI 기능을 사용할 때
+- **필요 시점**: AI 기능 테스트 시
 
 ##### GITHUB_TOKEN
-- **설명**: GitHub API 토큰
-- **기본값**: 빈 문자열
-- **필요 시점**: GitHub 연동 기능을 사용할 때
+- **필요 시점**: GitHub 연동 기능 테스트 시
 
 ##### IFRAMELY_API_KEY
-- **설명**: Iframely API 키 (URL 미리보기)
-- **기본값**: 빈 문자열
-- **필요 시점**: URL 미리보기 기능을 사용할 때
+- **필요 시점**: URL 미리보기 기능 테스트 시
 
 ##### SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET, SLACK_WEBHOOK_URL
-- **설명**: Slack 알림 서비스 정보
-- **기본값**: 빈 문자열
-- **필요 시점**: Slack 알림 기능을 사용할 때
+- **필요 시점**: Slack 알림 기능 테스트 시
 
 ##### SPELLCHECK_API_KEY, SPELLCHECK_URL
-- **설명**: 맞춤법 검사 API 정보
-- **기본값**: 빈 문자열, `http://localhost:8081`
-- **필요 시점**: 맞춤법 검사 기능을 사용할 때
+- **필요 시점**: 맞춤법 검사 기능 테스트 시
 
 #### 모니터링 및 로깅
 
 ##### SENTRY_DSN
-- **설명**: Sentry 오류 추적 DSN
-- **기본값**: 빈 문자열
-- **필요 시점**: Sentry 오류 추적을 사용할 때
+- **필요 시점**: Sentry 오류 추적 사용 시
 
 ##### OTEL_EXPORTER_OTLP_ENDPOINT
-- **설명**: OpenTelemetry Exporter 엔드포인트
-- **기본값**: 빈 문자열
-- **필요 시점**: OpenTelemetry 모니터링을 사용할 때
-
-##### PUBLIC_ENVIRONMENT
-- **설명**: 실행 환경 (`local`, `dev`, `prod` 등)
-- **기본값**: `local`
-- **사용처**: 모든 앱
-
-##### NODE_ENV
-- **설명**: Node.js 실행 환경
-- **기본값**: `development`
-- **사용처**: 모든 앱
+- **필요 시점**: OpenTelemetry 모니터링 사용 시
 
 ## 환경별 설정
 
-### 로컬 개발 (Local Development)
-
-로컬 개발 환경에서는 최소한의 설정으로 시작할 수 있습니다:
+### 오프라인 개발 (기본)
 
 ```bash
-# 필수 환경 변수만 설정
-DATABASE_URL=postgresql://typie:typie@localhost:5432/typie
-REDIS_URL=redis://localhost:6379
-
-# 선택 환경 변수 (기본값 사용)
-MEILISEARCH_URL=http://localhost:7700
-MEILISEARCH_API_KEY=masterKey
+# 환경 변수 설정 불필요!
+bun install
+bun run dev
 ```
 
-### 프로덕션 (Production)
+**자동 설정**:
+- SQLite 데이터베이스 자동 생성
+- 로컬 파일 스토리지 자동 생성
+- 인메모리 캐시 사용
+- 모든 더미 값 기본 제공
 
-프로덕션 환경에서는 모든 외부 서비스의 실제 인증 정보를 설정해야 합니다.
-보안을 위해 [Doppler](https://www.doppler.com/) 같은 시크릿 관리 도구 사용을 권장합니다.
+### 프로덕션 환경 시뮬레이션
+
+PostgreSQL과 Redis를 사용하려는 경우:
+
+```bash
+# 1. Docker 서비스 시작
+docker-compose up -d postgres redis meilisearch
+
+# 2. .env.local 파일 생성
+cat > .env.local << EOF
+DATABASE_URL=postgresql://typie:typie@localhost:5432/typie
+REDIS_URL=redis://localhost:6379
+MEILISEARCH_URL=http://localhost:7700
+MEILISEARCH_API_KEY=masterKey
+EOF
+
+# 3. 개발 서버 시작
+bun run dev
+```
+
+### 실제 OAuth 테스트
+
+실제 OAuth 제공자를 테스트하려는 경우:
+
+```bash
+# .env.local에 실제 값 추가
+GOOGLE_OAUTH_CLIENT_ID=your-google-client-id
+GOOGLE_OAUTH_CLIENT_SECRET=your-google-client-secret
+
+KAKAO_CLIENT_ID=your-kakao-client-id
+KAKAO_CLIENT_SECRET=your-kakao-client-secret
+```
 
 ## 환경 변수 로딩 순서
 
-1. **시스템 환경 변수**: 운영체제에서 설정된 환경 변수
-2. **`.env.local`**: 루트 디렉토리의 로컬 환경 변수 (Git에서 무시됨)
-3. **`.env`**: 각 앱의 환경 변수 파일 (Git에서 무시됨)
-4. **Doppler**: `dev:doppler` 스크립트 사용 시 Doppler에서 로드
+1. **기본값**: `apps/api/src/env.ts`의 기본값
+2. **시스템 환경 변수**: 운영체제에서 설정된 환경 변수
+3. **`.env.local`**: 루트 디렉토리의 로컬 환경 변수 (Git 무시)
+4. **`.env`**: 각 앱의 환경 변수 파일 (Git 무시)
+
+## 데이터베이스 전환
+
+### SQLite → PostgreSQL
+
+```bash
+# 1. PostgreSQL 시작
+docker-compose up -d postgres
+
+# 2. 환경 변수 설정
+echo "DATABASE_URL=postgresql://typie:typie@localhost:5432/typie" >> .env.local
+
+# 3. 서버 재시작 (자동 마이그레이션)
+bun run dev
+```
+
+### PostgreSQL → SQLite
+
+```bash
+# 1. 환경 변수 제거
+# .env.local에서 DATABASE_URL 줄 삭제
+
+# 2. 서버 재시작 (자동으로 SQLite 사용)
+bun run dev
+```
 
 ## 문제 해결
 
-### 데이터베이스 연결 실패
+### 환경 변수가 인식되지 않을 때
 
 ```bash
-# PostgreSQL이 실행 중인지 확인
-docker-compose ps postgres
+# 1. .env.local 파일 위치 확인
+ls -la .env.local
 
-# 또는 로컬 PostgreSQL 확인
-psql -U postgres -c "SELECT 1"
+# 2. 파일 내용 확인
+cat .env.local
 
-# Docker Compose로 재시작
-docker-compose restart postgres
+# 3. 서버 재시작
+bun run dev
 ```
 
-### Redis 연결 실패
+### 데이터베이스 연결 오류
 
 ```bash
-# Redis가 실행 중인지 확인
-docker-compose ps redis
-
-# 또는 로컬 Redis 확인
-redis-cli ping
-
-# Docker Compose로 재시작
-docker-compose restart redis
+# SQLite 모드로 전환
+rm .env.local
+bun run dev
 ```
 
-### Meilisearch 연결 실패
+### 캐시 문제
 
 ```bash
-# Meilisearch가 실행 중인지 확인
-docker-compose ps meilisearch
-
-# Meilisearch 상태 확인
-curl http://localhost:7700/health
-
-# Docker Compose로 재시작
-docker-compose restart meilisearch
+# 인메모리 캐시 사용 (Redis 제거)
+# .env.local에서 REDIS_URL 줄 삭제
+bun run dev
 ```
 
 ## 보안 주의사항
 
-1. **절대 시크릿을 Git에 커밋하지 마세요**: `.env`, `.env.local` 파일은 `.gitignore`에 포함되어 있습니다.
-2. **프로덕션 환경에서는 강력한 비밀번호 사용**: 기본 더미 값을 절대 프로덕션에서 사용하지 마세요.
-3. **시크릿 관리 도구 사용**: Doppler, AWS Secrets Manager, HashiCorp Vault 등을 사용하세요.
-4. **정기적으로 시크릿 교체**: API 키와 시크릿은 정기적으로 교체하세요.
+1. **절대 시크릿을 Git에 커밋하지 마세요**
+   - `.env`, `.env.local` 파일은 `.gitignore`에 포함되어 있습니다
+   - 예제 파일(`.env.local.example`)만 커밋하세요
+
+2. **프로덕션 환경에서는 실제 값 사용**
+   - 더미 값을 프로덕션에서 절대 사용하지 마세요
+   - 환경 변수 관리 도구 사용 권장 (Doppler, AWS Secrets Manager 등)
+
+3. **정기적으로 시크릿 교체**
+   - API 키와 시크릿은 정기적으로 교체하세요
+
+## 개발 모드 vs 프로덕션
+
+### 개발 모드 (기본)
+- SQLite 데이터베이스
+- 인메모리 캐시
+- 로컬 파일 스토리지
+- 더미 OAuth 값
+- 환경 변수 최소화
+
+### 프로덕션 모드
+- PostgreSQL 데이터베이스
+- Redis 캐시
+- S3 스토리지
+- 실제 OAuth 인증
+- 모든 환경 변수 필수
 
 ## 추가 리소스
 
-- [Docker Compose 문서](https://docs.docker.com/compose/)
-- [Doppler 문서](https://docs.doppler.com/)
 - [Bun 환경 변수](https://bun.sh/docs/runtime/env)
+- [Drizzle ORM 문서](https://orm.drizzle.team)
+- [Docker Compose 문서](https://docs.docker.com/compose/)
+
+## 요약
+
+**오프라인 개발**: 환경 변수 설정 불필요  
+**프로덕션 시뮬레이션**: Docker + 선택적 환경 변수  
+**실제 서비스 테스트**: 필요한 API 키만 추가  
+
+대부분의 경우 기본 설정으로 충분하며, 특정 기능을 테스트할 때만 해당 환경 변수를 추가하면 됩니다.

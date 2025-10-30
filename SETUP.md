@@ -1,10 +1,28 @@
 # Typie 개발 환경 설정 가이드
 
-이 가이드는 Typie 모노레포의 개발 환경을 설정하는 방법을 설명합니다.
+이 가이드는 Typie 모노레포의 오프라인 우선 개발 환경을 설정하는 방법을 설명합니다.
 
-## 빠른 시작
+## 빠른 시작 (권장)
 
-자동 설정 스크립트를 사용하여 개발 환경을 빠르게 설정할 수 있습니다:
+```bash
+# 1. 의존성 설치
+bun install
+
+# 2. 개발 서버 시작
+bun run dev
+```
+
+**그게 전부입니다!** 별도의 데이터베이스나 Redis 서버 설정이 필요 없습니다.
+
+첫 실행 시 자동으로:
+- SQLite 데이터베이스 생성 (`apps/api/data/typie.db`)
+- 데이터베이스 마이그레이션 실행
+- 초기 데이터 시딩 (플랜 정보 등)
+- 로컬 스토리지 디렉토리 생성 (`apps/api/.storage`)
+
+## 자동 설정 스크립트
+
+더 자세한 설정과 검증이 필요한 경우:
 
 ```bash
 bun run setup
@@ -12,69 +30,20 @@ bun run setup
 
 이 스크립트는 다음을 자동으로 수행합니다:
 
-- ✅ 필수 도구 확인 (Bun, Node.js, PostgreSQL, Redis 등)
+- ✅ 필수 도구 확인 (Bun, Node.js)
 - ✅ 의존성 설치
-- ✅ 환경 변수 설정
-- ✅ 데이터베이스 마이그레이션
-- ✅ 서비스 연결 확인
 - ✅ 공유 패키지 빌드
+- ✅ 개발 환경 정보 출력
 
-## Docker Compose를 사용한 빠른 시작 (권장)
+## 필수 요구사항
 
-Docker와 Docker Compose가 설치되어 있다면, 필요한 서비스를 빠르게 시작할 수 있습니다:
-
-```bash
-# 모든 서비스 시작 (PostgreSQL, Redis, Meilisearch)
-docker-compose up -d
-
-# 서비스 상태 확인
-docker-compose ps
-
-# 서비스 중지
-docker-compose down
-
-# 데이터와 함께 서비스 제거
-docker-compose down -v
-```
-
-Docker Compose를 사용하면 다음 서비스가 자동으로 실행됩니다:
-
-- **PostgreSQL** (포트 5432) - 데이터베이스
-- **Redis** (포트 6379) - 캐시 및 PubSub
-- **Meilisearch** (포트 7700) - 검색 엔진
-
-### 환경 변수 설정
-
-루트 디렉토리에 `.env.local` 파일을 생성하거나 제공된 예제 파일을 복사합니다:
-
-```bash
-cp .env.local.example .env.local
-```
-
-기본 설정은 Docker Compose의 서비스 URL과 연동되도록 이미 설정되어 있습니다:
-
-```env
-DATABASE_URL=postgresql://typie:typie@localhost:5432/typie
-REDIS_URL=redis://localhost:6379
-MEILISEARCH_URL=http://localhost:7700
-MEILISEARCH_API_KEY=masterKey
-```
-
-환경 변수에 대한 자세한 설명은 [ENVIRONMENT.md](./ENVIRONMENT.md)를 참조하세요.
-
-## 수동 설정
-
-Docker Compose를 사용하지 않고 수동으로 설정하려면 다음 단계를 따르세요.
-
-### 1. 필수 도구 설치
-
-#### Bun (1.3.0+)
+### Bun (1.3.0+)
 
 ```bash
 curl -fsSL https://bun.sh/install | bash
 ```
 
-#### Node.js (22+)
+### Node.js (22+)
 
 ```bash
 # nvm 사용
@@ -85,109 +54,29 @@ nvm use 22
 # https://nodejs.org
 ```
 
-#### PostgreSQL (12+)
+## 오프라인 개발 환경
 
-```bash
-# macOS
-brew install postgresql@16
-brew services start postgresql@16
+Typie는 오프라인 우선 아키텍처를 사용합니다:
 
-# Ubuntu/Debian
-sudo apt-get install postgresql postgresql-contrib
-sudo systemctl start postgresql
+### SQLite 데이터베이스
 
-# 데이터베이스 생성
-createdb typie
-```
+- **위치**: `apps/api/data/typie.db`
+- **특징**: 별도의 PostgreSQL 서버 불필요
+- **마이그레이션**: 첫 실행 시 자동 적용
+- **시딩**: 기본 플랜 데이터 자동 삽입
 
-#### Redis (6+)
+### 로컬 파일 스토리지
 
-```bash
-# macOS
-brew install redis
-brew services start redis
+- **위치**: `apps/api/.storage`
+- **특징**: 별도의 S3 서버 불필요
+- **구조**: S3 호환 API 제공
+- **초기화**: 첫 실행 시 자동 생성
 
-# Ubuntu/Debian
-sudo apt-get install redis-server
-sudo systemctl start redis
-```
+### 인메모리 캐싱
 
-#### Meilisearch (선택 사항)
-
-```bash
-# macOS
-brew install meilisearch
-
-# 또는 직접 다운로드
-# https://www.meilisearch.com/docs/learn/getting_started/installation
-```
-
-#### Doppler CLI (선택 사항)
-
-```bash
-# macOS
-brew install dopplerhq/cli/doppler
-
-# 기타 플랫폼
-# https://docs.doppler.com/docs/install-cli
-```
-
-### 2. 의존성 설치
-
-```bash
-bun install
-```
-
-### 3. 환경 변수 설정
-
-루트 디렉토리에 `.env.local` 파일을 생성하거나, 각 앱의 `.env.example` 파일을 복사하여 사용합니다:
-
-```bash
-# 방법 1: 루트 디렉토리에서 (권장)
-cp .env.local.example .env.local
-
-# 방법 2: 각 앱별로 설정
-cd apps/api && cp .env.example .env
-cd ../website && cp .env.example .env
-cd ../desktop && cp .env.example .env
-cd ../mobile && cp .env.example .env
-```
-
-기본 설정에는 로컬 개발에 필요한 모든 설정이 포함되어 있습니다:
-
-- PostgreSQL: `postgresql://typie:typie@localhost:5432/typie`
-- Redis: `redis://localhost:6379`
-- Meilisearch: `http://localhost:7700` (API 키: `masterKey`)
-- 서비스 URL: `http://localhost:5173` (웹사이트), `http://localhost:8080` (API)
-- OAuth: 개발용 더미 값 (실제 로그인 없이 테스트 가능)
-
-**상세한 환경 변수 설명은 [ENVIRONMENT.md](./ENVIRONMENT.md)를 참조하세요.**
-
-### 4. 데이터베이스 마이그레이션
-
-```bash
-cd apps/api
-bun drizzle-kit migrate
-```
-
-### 5. 시드 데이터 삽입 (선택 사항)
-
-```bash
-cd apps/api
-bun run scripts/seed.ts
-```
-
-### 6. 공유 패키지 빌드
-
-```bash
-# Sark 패키지 빌드
-cd packages/sark
-bun run build
-
-# Turbo codegen 실행 (styled-system, ui 등)
-cd ../..
-turbo run codegen
-```
+- **특징**: 별도의 Redis 서버 불필요
+- **사용**: 개발 모드에서 메모리 기반 캐시 사용
+- **제한**: 서버 재시작 시 캐시 초기화
 
 ## 개발 서버 실행
 
@@ -197,18 +86,18 @@ turbo run codegen
 bun run dev
 ```
 
+이 명령은 다음을 시작합니다:
+- API 서버 (http://localhost:8080)
+- 웹사이트 (http://localhost:5173)
+
 ### 개별 앱 실행
 
 ```bash
-# API 서버
+# API 서버만
 cd apps/api
 bun run dev
 
-# API 서버 (Doppler 사용)
-cd apps/api
-bun run dev:doppler
-
-# 웹사이트
+# 웹사이트만
 cd apps/website
 bun run dev
 
@@ -217,24 +106,35 @@ cd apps/mobile
 flutter run
 ```
 
-**참고:** API 서버는 기본적으로 `.env` 파일에서 환경 변수를 로드합니다. Doppler를 사용하려면 `dev:doppler` 스크립트를 사용하세요.
+## 데이터베이스 관리
 
-## 서비스 시작
+### 데이터베이스 초기화
 
-개발 시 필요한 서비스들을 시작하세요:
+모든 데이터를 삭제하고 처음부터 시작:
 
 ```bash
-# Redis
-redis-server
+rm -rf apps/api/data
+bun run dev  # 자동으로 재생성 및 마이그레이션
+```
 
-# Meilisearch
-meilisearch --master-key="masterKey"
+### Drizzle Studio
 
-# PostgreSQL (보통 백그라운드에서 실행 중)
-# macOS
-brew services start postgresql@16
-# Linux
-sudo systemctl start postgresql
+데이터베이스 내용을 시각적으로 확인:
+
+```bash
+cd apps/api
+bun x drizzle-kit studio
+```
+
+브라우저에서 https://local.drizzle.studio 열기
+
+### 마이그레이션 생성
+
+스키마 변경 후 마이그레이션 생성:
+
+```bash
+cd apps/api
+bun x drizzle-kit generate
 ```
 
 ## 사용 가능한 명령어
@@ -242,8 +142,8 @@ sudo systemctl start postgresql
 ```bash
 # 개발 환경
 bun run setup          # 개발 환경 자동 설정
-bun run dev-services   # 필요한 서비스 시작 가이드
-bun run check-services # 서비스 상태 확인
+bun run dev-services   # 오프라인 개발 환경 정보
+bun run check-services # 개발 환경 상태 확인
 
 # 개발
 bun run dev   # 모든 앱의 개발 서버 시작
@@ -269,6 +169,9 @@ bun run bootstrap # Lefthook 설치
 typie/
 ├── apps/
 │   ├── api/              # Hono + GraphQL Yoga API
+│   │   ├── data/         # SQLite 데이터베이스 (gitignore)
+│   │   ├── .storage/     # 로컬 파일 스토리지 (gitignore)
+│   │   └── src/
 │   ├── website/          # SvelteKit 웹 애플리케이션
 │   ├── mobile/           # Flutter 모바일 앱
 │   ├── desktop/          # Tauri 데스크톱 앱
@@ -281,7 +184,9 @@ typie/
 │   └── ...
 ├── crates/               # Rust 크레이트
 └── scripts/
-    └── setup.ts          # 자동 설정 스크립트
+    ├── setup.ts          # 자동 설정 스크립트
+    ├── check-services.ts # 서비스 상태 확인
+    └── dev-services.ts   # 개발 환경 정보
 ```
 
 ## 엔드포인트
@@ -290,31 +195,39 @@ typie/
 - **웹사이트**: http://localhost:5173
 - **API 상태**: http://localhost:8080/health
 
+## 선택 사항: 프로덕션 환경 시뮬레이션
+
+프로덕션과 유사한 환경이 필요한 경우 Docker Compose를 사용할 수 있습니다:
+
+### Meilisearch (검색 엔진)
+
+```bash
+docker-compose up -d meilisearch
+```
+
+환경 변수 설정:
+```bash
+# apps/api/.env 또는 .env.local
+MEILISEARCH_URL=http://localhost:7700
+MEILISEARCH_API_KEY=masterKey
+```
+
+### PostgreSQL + Redis
+
+```bash
+docker-compose up -d postgres redis
+```
+
+환경 변수 설정:
+```bash
+# apps/api/.env 또는 .env.local
+DATABASE_URL=postgresql://typie:typie@localhost:5432/typie
+REDIS_URL=redis://localhost:6379
+```
+
+**참고**: 환경 변수를 설정하지 않으면 기본적으로 SQLite와 인메모리 캐시를 사용합니다.
+
 ## 문제 해결
-
-### PostgreSQL 연결 실패
-
-```bash
-# PostgreSQL이 실행 중인지 확인
-psql -U postgres -c "SELECT 1"
-
-# 데이터베이스가 존재하는지 확인
-psql -U postgres -l | grep typie
-
-# 데이터베이스 생성
-createdb typie
-```
-
-### Redis 연결 실패
-
-```bash
-# Redis가 실행 중인지 확인
-redis-cli ping
-# 응답: PONG
-
-# Redis 시작
-redis-server
-```
 
 ### 빌드 오류
 
@@ -328,16 +241,74 @@ rm -rf .turbo
 turbo run build --force
 ```
 
-### 마이그레이션 오류
+### 데이터베이스 오류
 
 ```bash
-# 마이그레이션 상태 확인
-cd apps/api
-bun drizzle-kit studio
+# 데이터베이스 초기화
+rm -rf apps/api/data
+bun run dev  # 자동 재생성
+```
 
-# 데이터베이스 초기화 (주의: 모든 데이터 삭제)
-psql -U postgres -c "DROP DATABASE typie; CREATE DATABASE typie;"
-bun drizzle-kit migrate
+### 포트 충돌
+
+다른 프로세스가 포트를 사용 중인 경우:
+
+```bash
+# 포트 사용 프로세스 찾기
+lsof -i :8080  # API 서버
+lsof -i :5173  # 웹사이트
+
+# 프로세스 종료
+kill -9 <PID>
+```
+
+## 개발 워크플로우
+
+### 1. 새로운 기능 개발
+
+```bash
+# 1. 브랜치 생성
+git checkout -b feature/new-feature
+
+# 2. 개발 서버 시작
+bun run dev
+
+# 3. 코드 작성 및 테스트
+# (hot reload 자동 적용)
+
+# 4. 타입 체크 및 린트
+bun run lint:typecheck
+bun run lint:eslint
+
+# 5. 커밋
+git add .
+git commit -m "feat: add new feature"
+```
+
+### 2. 데이터베이스 스키마 변경
+
+```bash
+# 1. 스키마 파일 수정
+# apps/api/src/db/schemas/tables.ts
+
+# 2. 마이그레이션 생성
+cd apps/api
+bun x drizzle-kit generate
+
+# 3. 서버 재시작 (자동 마이그레이션 적용)
+bun run dev
+```
+
+### 3. UI 컴포넌트 개발
+
+```bash
+# 1. styled-system 변경 시
+cd packages/styled-system
+bun run codegen
+
+# 2. UI 컴포넌트 변경 시
+cd packages/ui
+# 자동 hot reload
 ```
 
 ## 추가 리소스

@@ -32,7 +32,7 @@ const schema = z.object({
   OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional(),
   PORTONE_API_SECRET: z.string().default(''),
   PORTONE_CHANNEL_KEY: z.string().default(''),
-  REDIS_URL: z.string().default('redis://localhost:6379'),
+  REDIS_URL: z.string().optional(),
   SENTRY_DSN: z.string().optional(),
   SLACK_BOT_TOKEN: z.string().default(''),
   SLACK_SIGNING_SECRET: z.string().default(''),

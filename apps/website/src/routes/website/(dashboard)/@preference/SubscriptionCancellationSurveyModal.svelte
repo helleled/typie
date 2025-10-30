@@ -3,8 +3,6 @@
   import { flex } from '@typie/styled-system/patterns';
   import { Button, Icon, Modal } from '@typie/ui/components';
   import { PLAN_FEATURES } from '@typie/ui/constants';
-  import dayjs from 'dayjs';
-  import { SubscriptionState } from '@/enums';
   import CheckIcon from '~icons/lucide/check';
   import ChevronRightIcon from '~icons/lucide/chevron-right';
   import XIcon from '~icons/lucide/x';
@@ -19,16 +17,11 @@
 
   let { open = $bindable(false), $user: _user, onSubmit }: Props = $props();
 
-  const user = fragment(
+  fragment(
     _user,
     graphql(`
       fragment DashboardLayout_PreferenceModal_BillingTab_SubscriptionCancellationSurveyModal_user on User {
         id
-        subscription {
-          id
-          state
-          expiresAt
-        }
       }
     `),
   );
@@ -168,14 +161,7 @@
           </div>
         </div>
 
-        {#if $user.subscription?.state === SubscriptionState.ACTIVE}
-          <p class={css({ fontSize: '14px', color: 'text.faint', lineHeight: '[1.6]' })}>
-            지금 해지하더라도 {dayjs($user.subscription.expiresAt).formatAsDate()}까지는 계속해서 타이피 FULL ACCESS 혜택을 이용할 수
-            있어요.
-          </p>
-        {:else if $user.subscription?.state === SubscriptionState.IN_GRACE_PERIOD}
-          <p class={css({ fontSize: '14px', color: 'text.faint', lineHeight: '[1.6]' })}>해지 즉시 유료 서비스가 중단됩니다.</p>
-        {/if}
+        <p class={css({ fontSize: '14px', color: 'text.faint', lineHeight: '[1.6]' })}>현재 구독 중인 플랜이 없습니다.</p>
       </div>
     {:else}
       <div class={flex({ flexDirection: 'column', gap: '24px' })}>

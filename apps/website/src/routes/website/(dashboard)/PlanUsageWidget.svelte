@@ -18,7 +18,7 @@
 
   let planUpgradeModalOpen = $state(false);
 
-  const user = fragment(
+  fragment(
     _user,
     graphql(`
       fragment DashboardLayout_PlanUsageWidget_user on User {
@@ -26,10 +26,6 @@
 
         subscription {
           id
-
-          plan {
-            id
-          }
         }
       }
     `),

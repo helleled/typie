@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/bun';
 import argon2 from 'argon2';
 import dayjs from 'dayjs';
 import { and, asc, desc, eq, gt, gte, inArray, isNotNull, lt, sql, sum } from 'drizzle-orm';
@@ -49,7 +48,6 @@ import {
 } from '@/enums';
 import { env } from '@/env';
 import { TypieError } from '@/errors';
-import * as portone from '@/external/portone';
 import * as storage from '@/storage/local';
 import { delay } from '@/utils/promise';
 import { getUserUsage } from '@/utils/user';
@@ -527,7 +525,7 @@ builder.mutationFields((t) => ({
         throw new TypieError({ code: 'overdue_invoices_exist' });
       }
 
-      const billingKey = await db.transaction(async (tx) => {
+      await db.transaction(async (tx) => {
         await tx
           .update(Entities)
           .set({ state: EntityState.PURGED, purgedAt: dayjs() })
@@ -547,11 +545,7 @@ builder.mutationFields((t) => ({
         await tx.update(Subscriptions).set({ state: SubscriptionState.EXPIRED }).where(eq(Subscriptions.userId, ctx.session.userId));
         await tx.delete(UserInAppPurchases).where(eq(UserInAppPurchases.userId, ctx.session.userId));
 
-        const billingKey = await tx
-          .delete(UserBillingKeys)
-          .where(eq(UserBillingKeys.userId, ctx.session.userId))
-          .returning({ billingKey: UserBillingKeys.billingKey })
-          .then(first);
+        await tx.delete(UserBillingKeys).where(eq(UserBillingKeys.userId, ctx.session.userId));
 
         await tx.delete(UserPersonalIdentities).where(eq(UserPersonalIdentities.userId, ctx.session.userId));
 
@@ -559,17 +553,7 @@ builder.mutationFields((t) => ({
         await tx.delete(UserSessions).where(eq(UserSessions.userId, ctx.session.userId));
 
         await tx.update(Users).set({ state: UserState.DEACTIVATED }).where(eq(Users.id, ctx.session.userId));
-
-        return billingKey;
       });
-
-      if (billingKey) {
-        try {
-          await portone.deleteBillingKey({ billingKey: billingKey.billingKey });
-        } catch (err) {
-          Sentry.captureException(err);
-        }
-      }
 
       return true;
     },
@@ -578,59 +562,8 @@ builder.mutationFields((t) => ({
   verifyPersonalIdentity: t.withAuth({ session: true }).fieldWithInput({
     type: User,
     input: { identityVerificationId: t.input.string() },
-    resolve: async (_, { input }, ctx) => {
-      const resp = await portone.getIdentityVerification({
-        identityVerificationId: input.identityVerificationId,
-      });
-
-      if (resp.status !== 'succeeded') {
-        throw new TypieError({ code: 'identity_verification_failed' });
-      }
-
-      const existingIdentityWithSameCi = await db
-        .select({ userId: UserPersonalIdentities.userId })
-        .from(UserPersonalIdentities)
-        .where(eq(UserPersonalIdentities.ci, resp.ci))
-        .then(first);
-
-      if (existingIdentityWithSameCi && existingIdentityWithSameCi.userId !== ctx.session.userId) {
-        throw new TypieError({ code: 'same_identity_exists' });
-      }
-
-      const existingIdentityWithSameUser = await db
-        .select({ id: UserPersonalIdentities.id, ci: UserPersonalIdentities.ci })
-        .from(UserPersonalIdentities)
-        .where(eq(UserPersonalIdentities.userId, ctx.session.userId))
-        .then(first);
-
-      if (existingIdentityWithSameUser) {
-        if (existingIdentityWithSameUser.ci !== resp.ci) {
-          throw new TypieError({ code: 'identity_not_match' });
-        }
-
-        await db
-          .update(UserPersonalIdentities)
-          .set({
-            name: resp.name,
-            birthDate: dayjs.kst(resp.birthDate).startOf('day'),
-            phoneNumber: resp.phoneNumber,
-            ci: resp.ci,
-            expiresAt: dayjs.kst().add(1, 'year').startOf('day'),
-          })
-          .where(eq(UserPersonalIdentities.id, existingIdentityWithSameUser.id));
-      } else {
-        await db.insert(UserPersonalIdentities).values({
-          userId: ctx.session.userId,
-          name: resp.name,
-          birthDate: dayjs.kst(resp.birthDate).startOf('day'),
-          gender: resp.gender,
-          phoneNumber: resp.phoneNumber,
-          ci: resp.ci,
-          expiresAt: dayjs.kst().add(1, 'year').startOf('day'),
-        });
-      }
-
-      return ctx.session.userId;
+    resolve: async () => {
+      throw new TypieError({ code: 'payment_features_disabled' });
     },
   }),
 

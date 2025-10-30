@@ -1,8 +1,8 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const filePath = path.join(__dirname, 'src/db/schemas/tables.ts');
-let content = fs.readFileSync(filePath, 'utf-8');
+let content = fs.readFileSync(filePath, 'utf8');
 
 // Function to generate index name from table name and columns
 function generateIndexName(tableName, columns, type = 'idx') {
@@ -19,13 +19,13 @@ while (i < lines.length) {
   const line = lines[i];
   
   // Check if this is an index definition line
-  if (line.match(/^\s*\(t\) => \[.*\],?\s*$/)) {
+  if (/^\s*\(t\) => \[.*\],?\s*$/.test(line)) {
     // This is a single-line index array - we need to convert it
-    const tableName = result[result.length - 2].match(/sqliteTable\(\s*['"](\w+)['"]/)?.[1];
+    const tableName = result.at(-2).match(/sqliteTable\(\s*['"](\w+)['"]/)?.[1];
     
     if (tableName) {
       const indexMatches = line.matchAll(/(?:index|uniqueIndex|unique)\(\)\.on\(([^)]+)\)(?:\.where\([^)]+\))?/g);
-      const indexes = Array.from(indexMatches);
+      const indexes = [...indexMatches];
       
       if (indexes.length > 0) {
         result.push(`  (t) => ({`);
@@ -49,7 +49,7 @@ while (i < lines.length) {
           
           const indexName = generateIndexName(tableName, columns, indexType);
           const whereClause = hasWhere ? match[0].match(/\.where\([^)]+\)/)?.[0] : '';
-          result.push(`    ${indexName.replace(/\./g, '_')}: ${indexFunc}('${indexName}').on(${match[1]})${whereClause},`);
+          result.push(`    ${indexName.replaceAll('.', '_')}: ${indexFunc}('${indexName}').on(${match[1]})${whereClause},`);
         });
         
         result.push(`  }),`);
@@ -59,13 +59,13 @@ while (i < lines.length) {
     } else {
       result.push(line);
     }
-  } else if (line.match(/^\s*\(t\) => \[\s*$/)) {
+  } else if (/^\s*\(t\) => \[\s*$/.test(line)) {
     // Multi-line index array - find the closing bracket
-    const tableName = result[result.length - 2].match(/sqliteTable\(\s*['"](\w+)['"]/)?.[1];
+    const tableName = result.at(-2).match(/sqliteTable\(\s*['"](\w+)['"]/)?.[1];
     const indexLines = [line];
     i++;
     
-    while (i < lines.length && !lines[i].match(/^\s*\],?\s*$/)) {
+    while (i < lines.length && !/^\s*\],?\s*$/.test(lines[i])) {
       indexLines.push(lines[i]);
       i++;
     }
@@ -78,10 +78,10 @@ while (i < lines.length) {
       indexLines.slice(1, -1).forEach(indexLine => {
         const trimmed = indexLine.trim();
         
-        if (trimmed.match(/^unique\(\)\.on\(/)) {
+        if (/^unique\(\)\.on\(/.test(trimmed)) {
           // Keep unique constraints as-is (just reformat)
           result.push(`    unique_${indexCounter++}: ${trimmed}`);
-        } else if (trimmed.match(/^(index|uniqueIndex)\(\)\.on\(/)) {
+        } else if (/^(index|uniqueIndex)\(\)\.on\(/.test(trimmed)) {
           const match = trimmed.match(/^(index|uniqueIndex)\(\)\.on\(([^)]+)\)(\.where\([^)]+\))?/);
           if (match) {
             const indexFunc = match[1];

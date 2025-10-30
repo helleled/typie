@@ -45,7 +45,6 @@
           plan {
             id
             name
-            fee
             interval
           }
         }
@@ -59,7 +58,6 @@
           plan {
             id
             name
-            fee
             interval
           }
         }

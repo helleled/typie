@@ -4,7 +4,7 @@ const filePath = './src/db/schemas/tables.ts';
 let content = readFileSync(filePath, 'utf-8');
 
 // Replace simple one-line index arrays
-content = content.replace(
+content = content.replaceAll(
   /^(\s*)export const (\w+) = sqliteTable\(\s*\n\s*'([^']+)',\s*\n([\s\S]*?)\n(\s*)\(t\) => \[(.*?)\],\s*\n\);/gm,
   (match, indent, constName, tableName, fields, indent2, indexes) => {
     const indexDefs = indexes.trim().split(/,\s*(?=(?:index|unique))/);
@@ -20,7 +20,7 @@ content = content.replace(
       if (!trimmed) return;
       
       // Handle unique() constraints
-      if (trimmed.match(/^unique\(\)\.on\(/)) {
+      if (/^unique\(\)\.on\(/.test(trimmed)) {
         indexObjects.push(`    uniqueConstraint_${i}: ${trimmed},`);
         return;
       }
@@ -35,7 +35,7 @@ content = content.replace(
         // Extract column names for index name
         const colNames = columns
           .split(',')
-          .map(c => c.trim().replace(/^t\./, '').replace(/\W/g, '_'))
+          .map(c => c.trim().replace(/^t\./, '').replaceAll(/\W/g, '_'))
           .join('_');
         
         const indexType = funcName === 'uniqueIndex' ? 'unique_idx' : 'idx';
@@ -62,7 +62,7 @@ while (i < lines.length) {
   const line = lines[i];
   
   // Find multi-line index arrays
-  if (line.match(/^\s*\(t\) => \[\s*$/)) {
+  if (/^\s*\(t\) => \[\s*$/.test(line)) {
     // Find the table name
     let tableName = '';
     for (let j = i - 1; j >= 0; j--) {
@@ -77,7 +77,7 @@ while (i < lines.length) {
     i++;
     
     // Collect all lines until closing bracket
-    while (i < lines.length && !lines[i].match(/^\s*\],?\s*$/)) {
+    while (i < lines.length && !/^\s*\],?\s*$/.test(lines[i])) {
       indexLines.push(lines[i]);
       i++;
     }
@@ -90,7 +90,7 @@ while (i < lines.length) {
       if (!trimmed) return;
       
       // Handle unique() constraints
-      if (trimmed.match(/^unique\(\)\.on\(/)) {
+      if (/^unique\(\)\.on\(/.test(trimmed)) {
         indexObjects.push(`    uniqueConstraint_${idx}: ${trimmed},`);
         return;
       }
@@ -104,7 +104,7 @@ while (i < lines.length) {
         
         const colNames = columns
           .split(',')
-          .map(c => c.trim().replace(/^t\./, '').replace(/\W/g, '_'))
+          .map(c => c.trim().replace(/^t\./, '').replaceAll(/\W/g, '_'))
           .join('_');
         
         const indexType = funcName === 'uniqueIndex' ? 'unique_idx' : 'idx';
@@ -114,9 +114,7 @@ while (i < lines.length) {
       }
     });
     
-    result.push('  (t) => ({');
-    result.push(...indexObjects);
-    result.push('  }),');
+    result.push('  (t) => ({', ...indexObjects, '  }),');
     i++; // Skip the closing bracket
   } else {
     result.push(line);

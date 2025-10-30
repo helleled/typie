@@ -21,7 +21,7 @@ import { EntityState, PostLayoutMode } from '@/enums';
 import { Lock } from '@/lock';
 import { schema } from '@/pm';
 import { pubsub } from '@/pubsub';
-import { indexPost, deletePostFromIndex } from '@/search';
+import { deletePostFromIndex,indexPost } from '@/search';
 import { makeText } from '@/utils';
 import { compressZstd, decompressZstd } from '@/utils/compression';
 import { enqueueJob } from '../index';

@@ -28,7 +28,7 @@ const FootnoteReference = createNodeView(FootnoteReferenceComponent, {
     return {
       id: {
         default: null,
-        parseHTML: (element) => element.getAttribute('data-footnote-id'),
+        parseHTML: (element) => element.dataset.footnoteId,
         renderHTML: ({ id }) => {
           return { 'data-footnote-id': id };
         },
@@ -36,8 +36,8 @@ const FootnoteReference = createNodeView(FootnoteReferenceComponent, {
       number: {
         default: 1,
         parseHTML: (element) => {
-          const num = element.getAttribute('data-footnote-number');
-          return num ? parseInt(num, 10) : 1;
+          const num = element.dataset.footnoteNumber;
+          return num ? Number.parseInt(num, 10) : 1;
         },
         renderHTML: ({ number }) => {
           return { 'data-footnote-number': number };
@@ -81,7 +81,7 @@ const FootnoteItem = Node.create({
     return {
       id: {
         default: null,
-        parseHTML: (element) => element.getAttribute('data-footnote-id'),
+        parseHTML: (element) => element.dataset.footnoteId,
         renderHTML: ({ id }) => {
           return { 'data-footnote-id': id };
         },
@@ -89,8 +89,8 @@ const FootnoteItem = Node.create({
       number: {
         default: 1,
         parseHTML: (element) => {
-          const num = element.getAttribute('data-footnote-number');
-          return num ? parseInt(num, 10) : 1;
+          const num = element.dataset.footnoteNumber;
+          return num ? Number.parseInt(num, 10) : 1;
         },
         renderHTML: ({ number }) => {
           return { 'data-footnote-number': number };
@@ -226,7 +226,7 @@ const FootnoteSyncPlugin = Extension.create({
             });
 
             const referenceIds = references.map((r) => r.id);
-            const uniqueReferenceIds = Array.from(new Set(referenceIds));
+            const uniqueReferenceIds = [...new Set(referenceIds)];
 
             // Create or update footnote list
             if (footnoteListPos === null) {
@@ -331,7 +331,7 @@ export const Footnote = Extension.create({
         () =>
         ({ commands, state, editor }) => {
           // Generate unique ID
-          const id = `footnote-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+          const id = `footnote-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
           
           // Find the highest number currently in use
           let maxNumber = 0;

@@ -7,5 +7,7 @@ for (const [name, handler] of Object.entries(taskMap)) {
   scheduler.register(name, handler);
 }
 
-export const queue = scheduler;
-export const worker = scheduler;
+
+
+
+export {scheduler as queue, scheduler as worker} from '@/runtime/scheduler';

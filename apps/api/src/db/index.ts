@@ -1,7 +1,7 @@
-import { drizzle } from 'drizzle-orm/bun-sqlite';
-import { Database as BunDatabase } from 'bun:sqlite';
 import { existsSync, mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
+import { Database as BunDatabase } from 'bun:sqlite';
+import { drizzle } from 'drizzle-orm/bun-sqlite';
 import { migrate } from 'drizzle-orm/bun-sqlite/migrator';
 import { env } from '@/env';
 import { DrizzleLogger } from './logger';

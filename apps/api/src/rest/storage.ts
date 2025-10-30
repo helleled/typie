@@ -31,8 +31,8 @@ storageRouter.post('/uploads/upload', async (c) => {
     });
 
     return c.json({ success: true, key });
-  } catch (error) {
-    console.error('Upload error:', error);
+  } catch (err) {
+    console.error('Upload error:', err);
     throw new HTTPException(500, { message: 'Upload failed' });
   }
 });
@@ -57,7 +57,7 @@ storageRouter.get('/:bucket/:type/:path{.+}', async (c) => {
         'Cache-Control': 'public, max-age=31536000, immutable',
       },
     });
-  } catch (error) {
+  } catch {
     throw new HTTPException(404, { message: 'File not found' });
   }
 });
@@ -80,7 +80,7 @@ storageRouter.get('/:bucket/:path{.+}', async (c) => {
         'Cache-Control': 'public, max-age=31536000, immutable',
       },
     });
-  } catch (error) {
+  } catch {
     throw new HTTPException(404, { message: 'File not found' });
   }
 });

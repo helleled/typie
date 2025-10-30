@@ -49,11 +49,6 @@
 
           plan {
             id
-
-            rule {
-              maxTotalCharacterCount
-              maxTotalBlobSize
-            }
           }
         }
       }

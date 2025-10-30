@@ -1,5 +1,5 @@
-import { eq, sql } from 'drizzle-orm';
-import { integer, text, index, unique, uniqueIndex, sqliteTable } from 'drizzle-orm/sqlite-core';
+import { sql } from 'drizzle-orm';
+import { index, integer, sqliteTable,text, unique, uniqueIndex } from 'drizzle-orm/sqlite-core';
 import { TableCode } from './codes';
 import * as E from './enums';
 import { createDbId } from './id';
@@ -28,7 +28,6 @@ export const Canvases = sqliteTable(
   (t) => ({
     entityIdIdx: index('canvases_entity_id_idx').on(t.entityId),
   }),
-);
 );
 
 export const CanvasContents = sqliteTable('canvas_contents', {
@@ -72,7 +71,6 @@ export const CanvasSnapshots = sqliteTable(
     canvases_canvasId_createdAt_order_idx: index('canvases_canvasId_createdAt_order_idx').on(t.canvasId, t.createdAt, t.order),
   }),
 );
-);
 
 export const CanvasSnapshotContributors = sqliteTable(
   'canvas_snapshot_contributors',
@@ -93,7 +91,6 @@ export const CanvasSnapshotContributors = sqliteTable(
   (t) => ({
     uniqueConstraint_0: unique().on(t.snapshotId, t.userId),
   }),
-);
 );
 
 export const CreditCodes = sqliteTable('credit_codes', {
@@ -143,7 +140,6 @@ export const Folders = sqliteTable(
     folders_entityId_idx: index('folders_entityId_idx').on(t.entityId),
   }),
 );
-);
 
 export const FontFamilies = sqliteTable(
   'font_families',
@@ -163,7 +159,6 @@ export const FontFamilies = sqliteTable(
   (t) => ({
     uniqueConstraint_0: unique().on(t.userId, t.name),
   }),
-);
 );
 
 export const Fonts = sqliteTable(
@@ -190,7 +185,6 @@ export const Fonts = sqliteTable(
   (t) => ({
     fonts_familyId_state_idx: index('fonts_familyId_state_idx').on(t.familyId, t.state),
   }),
-);
 );
 
 export const Embeds = sqliteTable('embeds', {
@@ -245,7 +239,6 @@ export const Entities = sqliteTable(
     embeds_parentId_state_idx: index('embeds_parentId_state_idx').on(t.parentId, t.state),
     embeds_userId_viewedAt_idx: index('embeds_userId_viewedAt_idx').on(t.userId, t.viewedAt),
   }),
-);
 );
 
 export const Images = sqliteTable('images', {
@@ -316,7 +309,6 @@ export const PaymentInvoices = sqliteTable(
     entities_userId_state_idx: index('entities_userId_state_idx').on(t.userId, t.state),
   }),
 );
-);
 
 export const PaymentRecords = sqliteTable('payment_records', {
   id: text('id')
@@ -379,7 +371,6 @@ export const Posts = sqliteTable(
     posts_updatedAt_idx: index('posts_updatedAt_idx').on(t.updatedAt),
   }),
 );
-);
 
 export const PostAnchors = sqliteTable(
   'post_anchors',
@@ -399,7 +390,6 @@ export const PostAnchors = sqliteTable(
   (t) => ({
     post_anchors_postId_nodeId_unique_idx: uniqueIndex('post_anchors_postId_nodeId_unique_idx').on(t.postId, t.nodeId),
   }),
-);
 );
 
 export const PostCharacterCountChanges = sqliteTable(
@@ -425,7 +415,6 @@ export const PostCharacterCountChanges = sqliteTable(
     post_character_count_changes_userId_postId_bucket_unique_idx: uniqueIndex('post_character_count_changes_userId_postId_bucket_unique_idx').on(t.userId, t.postId, t.bucket),
     post_character_count_changes_userId_bucket_idx: index('post_character_count_changes_userId_bucket_idx').on(t.userId, t.bucket),
   }),
-);
 );
 
 export const PostContents = sqliteTable(
@@ -464,7 +453,6 @@ export const PostContents = sqliteTable(
     post_contents_compactedAt_idx: index('post_contents_compactedAt_idx').on(t.compactedAt),
   }),
 );
-);
 
 export const PostSnapshots = sqliteTable(
   'post_snapshots',
@@ -484,7 +472,6 @@ export const PostSnapshots = sqliteTable(
   (t) => ({
     post_snapshots_postId_createdAt_order_idx: index('post_snapshots_postId_createdAt_order_idx').on(t.postId, t.createdAt, t.order),
   }),
-);
 );
 
 export const PostSnapshotContributors = sqliteTable(
@@ -507,7 +494,6 @@ export const PostSnapshotContributors = sqliteTable(
     uniqueConstraint_0: unique().on(t.snapshotId, t.userId),
   }),
 );
-);
 
 export const PostReactions = sqliteTable(
   'post_reactions',
@@ -528,7 +514,6 @@ export const PostReactions = sqliteTable(
   (t) => ({
     post_reactions_postId_createdAt_idx: index('post_reactions_postId_createdAt_idx').on(t.postId, t.createdAt),
   }),
-);
 );
 
 export const PreorderPayments = sqliteTable('preorder_payments', {
@@ -612,28 +597,23 @@ export const Sites = sqliteTable(
   }),
 );
 
-export const Subscriptions = sqliteTable(
-  'subscriptions',
-  {
-    id: text('id')
-      .primaryKey()
-      .$defaultFn(() => createDbId(TableCode.SUBSCRIPTIONS)),
-    userId: text('user_id')
-      .notNull()
-      .references(() => Users.id, { onUpdate: 'cascade', onDelete: 'restrict' }),
-    planId: text('plan_id')
-      .notNull()
-      .references(() => Plans.id, { onUpdate: 'cascade', onDelete: 'restrict' }),
-    startsAt: datetime('starts_at').notNull(),
-    expiresAt: datetime('expires_at').notNull(),
-    state: E._SubscriptionState('state').notNull().default('ACTIVE'),
-    createdAt: datetime('created_at')
-      .notNull()
-      .default(sql`(CURRENT_TIMESTAMP)`),
-  },
-  (t) => ({
-  }),
-);
+export const Subscriptions = sqliteTable('subscriptions', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => createDbId(TableCode.SUBSCRIPTIONS)),
+  userId: text('user_id')
+    .notNull()
+    .references(() => Users.id, { onUpdate: 'cascade', onDelete: 'restrict' }),
+  planId: text('plan_id')
+    .notNull()
+    .references(() => Plans.id, { onUpdate: 'cascade', onDelete: 'restrict' }),
+  startsAt: datetime('starts_at').notNull(),
+  expiresAt: datetime('expires_at').notNull(),
+  state: E._SubscriptionState('state').notNull().default('ACTIVE'),
+  createdAt: datetime('created_at')
+    .notNull()
+    .default(sql`(CURRENT_TIMESTAMP)`),
+});
 
 export const Users = sqliteTable(
   'users',
@@ -693,7 +673,6 @@ export const UserInAppPurchases = sqliteTable(
   (t) => ({
     uniqueConstraint_0: unique().on(t.store, t.identifier),
   }),
-);
 );
 
 export const UserMarketingConsents = sqliteTable('user_marketing_consents', {
@@ -774,7 +753,6 @@ export const UserPushNotificationTokens = sqliteTable(
     user_push_notification_tokens_userId_idx: index('user_push_notification_tokens_userId_idx').on(t.userId),
   }),
 );
-);
 
 export const UserSessions = sqliteTable(
   'user_sessions',
@@ -794,7 +772,6 @@ export const UserSessions = sqliteTable(
   (t) => ({
     user_sessions_userId_idx: index('user_sessions_userId_idx').on(t.userId),
   }),
-);
 );
 
 export const UserSingleSignOns = sqliteTable(
@@ -818,7 +795,6 @@ export const UserSingleSignOns = sqliteTable(
     uniqueConstraint_1: unique().on(t.provider, t.principal),
   }),
 );
-);
 
 export const UserSurveys = sqliteTable(
   'user_surveys',
@@ -838,7 +814,6 @@ export const UserSurveys = sqliteTable(
   (t) => ({
     uniqueConstraint_0: unique().on(t.userId, t.name),
   }),
-);
 );
 
 export const Widgets = sqliteTable(

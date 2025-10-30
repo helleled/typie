@@ -10,8 +10,8 @@
   import CodeIcon from '~icons/lucide/code';
   import CodeXmlIcon from '~icons/lucide/code-xml';
   import FilePlusIcon from '~icons/lucide/file-plus';
-  import FootnoteIcon from '~icons/lucide/footnote';
   import FileUpIcon from '~icons/lucide/file-up';
+  import FootnoteIcon from '~icons/lucide/footnote';
   import GalleryVerticalEndIcon from '~icons/lucide/gallery-vertical-end';
   import ImageIcon from '~icons/lucide/image';
   import InfoIcon from '~icons/lucide/info';

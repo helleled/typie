@@ -91,8 +91,8 @@ class Scheduler {
     const job = new CronJob(
       config.pattern,
       () => {
-        this.add(config.name, {}).catch((error) => {
-          log.error('Failed to enqueue cron job {*}', { name: config.name, error });
+        this.add(config.name, {}).catch((err) => {
+          log.error('Failed to enqueue cron job {*}', { name: config.name, error: err });
         });
       },
       null,
@@ -161,7 +161,7 @@ class Scheduler {
       job.finishedOn = Date.now();
       this.#emit('completed', job);
       log.info('Job completed {*}', { id: job.id, name: job.name, data: job.data });
-    } catch (error) {
+    } catch (err) {
       job.attempts++;
       
       if (job.attempts < job.maxAttempts) {
@@ -172,7 +172,7 @@ class Scheduler {
           attempt: job.attempts, 
           maxAttempts: job.maxAttempts,
           delay,
-          error,
+          error: err,
         });
         
         setTimeout(() => {
@@ -180,9 +180,9 @@ class Scheduler {
           this.#process();
         }, delay);
       } else {
-        log.error('Job failed {*}', { id: job.id, name: job.name, data: job.data, error });
-        this.#emit('failed', job, error as Error);
-        Sentry.captureException(error);
+        log.error('Job failed {*}', { id: job.id, name: job.name, data: job.data, error: err });
+        this.#emit('failed', job, err as Error);
+        Sentry.captureException(err);
       }
     } finally {
       this.#activeJobs.delete(job.id);

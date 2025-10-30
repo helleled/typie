@@ -3,55 +3,81 @@
 import { PlanId } from '@/const';
 import { db, Plans } from '@/db';
 import { PlanAvailability, PlanInterval } from '@/enums';
+import { logger } from '@typie/lib';
 
-await db.transaction(async (tx) => {
-  await tx.insert(Plans).values({
-    id: PlanId.FULL_ACCESS_1MONTH_WITH_BILLING_KEY,
-    name: '타이피 FULL ACCESS (월간)',
-    fee: 4900,
-    availability: PlanAvailability.BILLING_KEY,
-    interval: PlanInterval.MONTHLY,
-    rule: {
-      maxTotalCharacterCount: -1,
-      maxTotalBlobSize: -1,
-    },
-  });
+const log = logger.getChild('seed');
 
-  await tx.insert(Plans).values({
-    id: PlanId.FULL_ACCESS_1YEAR_WITH_BILLING_KEY,
-    name: '타이피 FULL ACCESS (연간)',
-    fee: 49_000,
-    availability: PlanAvailability.BILLING_KEY,
-    interval: PlanInterval.YEARLY,
-    rule: {
-      maxTotalCharacterCount: -1,
-      maxTotalBlobSize: -1,
-    },
-  });
+export async function seedDatabase() {
+  log.info('Seeding database...');
 
-  await tx.insert(Plans).values({
-    id: PlanId.FULL_ACCESS_1MONTH_WITH_IN_APP_PURCHASE,
-    name: '타이피 FULL ACCESS (월간)',
-    fee: 6900,
-    availability: PlanAvailability.IN_APP_PURCHASE,
-    interval: PlanInterval.MONTHLY,
-    rule: {
-      maxTotalCharacterCount: -1,
-      maxTotalBlobSize: -1,
-    },
-  });
+  try {
+    await db.transaction(async (tx) => {
+      // Seed plans (insert or ignore if already exists)
+      const plans = [
+        {
+          id: PlanId.FULL_ACCESS_1MONTH_WITH_BILLING_KEY,
+          name: '타이피 FULL ACCESS (월간)',
+          fee: 4900,
+          availability: PlanAvailability.BILLING_KEY,
+          interval: PlanInterval.MONTHLY,
+          rule: {
+            maxTotalCharacterCount: -1,
+            maxTotalBlobSize: -1,
+          },
+        },
+        {
+          id: PlanId.FULL_ACCESS_1YEAR_WITH_BILLING_KEY,
+          name: '타이피 FULL ACCESS (연간)',
+          fee: 49_000,
+          availability: PlanAvailability.BILLING_KEY,
+          interval: PlanInterval.YEARLY,
+          rule: {
+            maxTotalCharacterCount: -1,
+            maxTotalBlobSize: -1,
+          },
+        },
+        {
+          id: PlanId.FULL_ACCESS_1MONTH_WITH_IN_APP_PURCHASE,
+          name: '타이피 FULL ACCESS (월간)',
+          fee: 6900,
+          availability: PlanAvailability.IN_APP_PURCHASE,
+          interval: PlanInterval.MONTHLY,
+          rule: {
+            maxTotalCharacterCount: -1,
+            maxTotalBlobSize: -1,
+          },
+        },
+        {
+          id: PlanId.FULL_ACCESS_1YEAR_WITH_IN_APP_PURCHASE,
+          name: '타이피 FULL ACCESS (연간)',
+          fee: 69_000,
+          availability: PlanAvailability.IN_APP_PURCHASE,
+          interval: PlanInterval.YEARLY,
+          rule: {
+            maxTotalCharacterCount: -1,
+            maxTotalBlobSize: -1,
+          },
+        },
+      ];
 
-  await tx.insert(Plans).values({
-    id: PlanId.FULL_ACCESS_1YEAR_WITH_IN_APP_PURCHASE,
-    name: '타이피 FULL ACCESS (연간)',
-    fee: 69_000,
-    availability: PlanAvailability.IN_APP_PURCHASE,
-    interval: PlanInterval.YEARLY,
-    rule: {
-      maxTotalCharacterCount: -1,
-      maxTotalBlobSize: -1,
-    },
-  });
-});
+      for (const plan of plans) {
+        await tx
+          .insert(Plans)
+          .values(plan)
+          .onConflictDoNothing()
+          .execute();
+      }
+    });
 
-process.exit(0);
+    log.info('Database seeding completed successfully');
+  } catch (error) {
+    log.error('Database seeding failed {*}', { error });
+    throw error;
+  }
+}
+
+// Run if called directly
+if (import.meta.main) {
+  await seedDatabase();
+  process.exit(0);
+}

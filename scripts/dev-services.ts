@@ -1,15 +1,10 @@
 #!/usr/bin/env bun
 
 /**
- * Development Services Starter
+ * Development Services Information
  *
- * This script helps start all required services for development.
- * It provides instructions and optionally starts services in the background.
+ * This script provides information about the offline-first development setup.
  */
-
-import { spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
-import { createInterface } from 'node:readline';
 
 const colors = {
   reset: '\u001B[0m',
@@ -23,72 +18,36 @@ const colors = {
 const log = {
   info: (msg: string) => console.log(`${colors.blue}ℹ${colors.reset} ${msg}`),
   success: (msg: string) => console.log(`${colors.green}✓${colors.reset} ${msg}`),
-  warn: (msg: string) => console.log(`${colors.yellow}⚠${colors.reset} ${msg}`),
   title: (msg: string) => console.log(`\n${colors.cyan}${colors.bright}${msg}${colors.reset}\n`),
 };
 
-function commandExists(command: string): boolean {
-  try {
-    const result = Bun.spawnSync(['which', command]);
-    return result.exitCode === 0;
-  } catch {
-    return false;
-  }
-}
+log.title('Typie 오프라인 개발 환경');
 
-log.title('개발 서비스 시작 가이드');
+console.log('Typie는 오프라인 우선 아키텍처를 사용합니다.\n');
 
-console.log('다음 서비스들이 실행되어야 합니다:\n');
+log.success('로컬 SQLite 데이터베이스');
+console.log('  • 별도의 데이터베이스 서버 불필요');
+console.log('  • 위치: apps/api/data/typie.db');
+console.log('  • 첫 실행 시 자동으로 생성 및 마이그레이션됨\n');
 
-// PostgreSQL
-if (commandExists('psql')) {
-  log.success('PostgreSQL');
-  console.log('  macOS: brew services start postgresql');
-  console.log('  Linux: sudo systemctl start postgresql');
-  console.log('  상태 확인: psql -U postgres -c "SELECT 1"\n');
-} else {
-  log.warn('PostgreSQL이 설치되어 있지 않습니다');
-  console.log('  설치: https://www.postgresql.org/download/\n');
-}
+log.success('로컬 파일 스토리지');
+console.log('  • 별도의 S3 서버 불필요');
+console.log('  • 위치: apps/api/.storage');
+console.log('  • 첫 실행 시 자동으로 생성됨\n');
 
-// Redis
-if (commandExists('redis-server')) {
-  log.success('Redis');
-  console.log('  시작: redis-server');
-  console.log('  상태 확인: redis-cli ping\n');
+log.success('인메모리 캐싱');
+console.log('  • 별도의 Redis 서버 불필요');
+console.log('  • 개발 모드에서는 메모리 기반 캐시 사용\n');
 
-  // Redis 자동 시작 시도
-  if (existsSync('/tmp/redis.pid')) {
-    showNextSteps();
-  } else {
-    console.log('  Redis를 백그라운드에서 시작하시겠습니까? (권장)');
-    const readline = createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
+console.log(colors.bright + '빠른 시작:' + colors.reset);
+console.log('  1. 의존성 설치: ' + colors.cyan + 'bun install' + colors.reset);
+console.log('  2. 개발 서버 시작: ' + colors.cyan + 'bun run dev' + colors.reset);
+console.log('  3. 브라우저에서 열기: ' + colors.cyan + 'http://localhost:5173' + colors.reset + '\n');
 
-    readline.question('  (Y/n): ', (answer: string) => {
-      if (answer.toLowerCase() !== 'n') {
-        const redis = spawn('redis-server', [], {
-          detached: true,
-          stdio: 'ignore',
-        });
-        redis.unref();
-        log.success('Redis가 백그라운드에서 시작되었습니다');
-      }
-      readline.close();
-      showNextSteps();
-    });
-  }
-} else {
-  log.warn('Redis가 설치되어 있지 않습니다');
-  console.log('  설치: https://redis.io/download\n');
-  showNextSteps();
-}
+console.log(colors.bright + '선택 사항:' + colors.reset);
+console.log('  • 검색 기능을 위한 Meilisearch (docker-compose up -d meilisearch)');
+console.log('  • 프로덕션과 유사한 환경을 위한 PostgreSQL/Redis\n');
 
-function showNextSteps() {
-  console.log('\n' + colors.bright + '다음 단계:' + colors.reset);
-  console.log('  1. 위의 서비스들을 시작하세요');
-  console.log('  2. 서비스 상태 확인: ' + colors.cyan + 'bun run check-services' + colors.reset);
-  console.log('  3. 개발 서버 시작: ' + colors.cyan + 'bun run dev' + colors.reset + '\n');
-}
+console.log(colors.bright + '데이터베이스 관리:' + colors.reset);
+console.log('  • 데이터베이스 초기화: ' + colors.cyan + 'rm -rf apps/api/data' + colors.reset);
+console.log('  • Drizzle Studio 실행: ' + colors.cyan + 'cd apps/api && bun x drizzle-kit studio' + colors.reset + '\n');

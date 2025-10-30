@@ -1,25 +1,35 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import { dev, env } from '@/env';
+import { drizzle } from 'drizzle-orm/bun-sqlite';
+import { Database as BunDatabase } from 'bun:sqlite';
+import { existsSync, mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
+import { migrate } from 'drizzle-orm/bun-sqlite/migrator';
+import { env } from '@/env';
 import { DrizzleLogger } from './logger';
 import * as enums from './schemas/enums';
 import * as tables from './schemas/tables';
-import type { PgDatabase, PgTransaction } from 'drizzle-orm/pg-core';
+import type { BaseSQLiteDatabase } from 'drizzle-orm/sqlite-core';
 
-export const pg = postgres(env.DATABASE_URL, {
-  max: dev ? 20 : 50,
-  connect_timeout: 5,
-  idle_timeout: 30,
-  prepare: false,
-});
+const dbPath = env.DATABASE_URL;
+const dbDir = dirname(dbPath);
 
-export const db = drizzle(pg, {
+// Ensure database directory exists
+if (!existsSync(dbDir)) {
+  mkdirSync(dbDir, { recursive: true });
+}
+
+export const sqlite = new BunDatabase(dbPath, { create: true });
+
+export const db = drizzle(sqlite, {
   schema: { ...tables, ...enums },
   logger: new DrizzleLogger(),
 });
 
 export type Database = typeof db;
-export type Transaction = Database extends PgDatabase<infer T, infer U, infer V> ? PgTransaction<T, U, V> : never;
+export type Transaction = BaseSQLiteDatabase<'sync', any, any>;
+
+export async function runMigrations() {
+  migrate(db, { migrationsFolder: './drizzle' });
+}
 
 export * from './schemas/codes';
 export * from './schemas/id';

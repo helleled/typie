@@ -1,1 +1,0 @@
-ALTER TABLE "post_contents" ADD COLUMN "stored_marks" jsonb DEFAULT '[]'::jsonb NOT NULL;

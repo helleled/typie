@@ -1,1 +1,0 @@
-ALTER TABLE "post_contents" ADD COLUMN "note" text DEFAULT '' NOT NULL;

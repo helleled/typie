@@ -1,1 +1,0 @@
-ALTER TABLE "post_contents" ALTER COLUMN "blob_size" SET DATA TYPE bigint;

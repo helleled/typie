@@ -1,1 +1,0 @@
-ALTER TYPE "public"."_single_sign_on_provider" ADD VALUE 'APPLE' BEFORE 'GOOGLE';

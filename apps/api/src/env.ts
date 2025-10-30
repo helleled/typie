@@ -12,7 +12,7 @@ const schema = z.object({
   APPLE_SIGN_IN_PRIVATE_KEY: z.string().default(''),
   APPLE_TEAM_ID: z.string().default(''),
   AUTH_URL: z.string().default('http://localhost:5173'),
-  DATABASE_URL: z.string().default('postgresql://typie:typie@localhost:5432/typie'),
+  DATABASE_URL: z.string().default('./data/typie.db'),
   GITHUB_TOKEN: z.string().default(''),
   GOOGLE_OAUTH_CLIENT_ID: z.string().default(''),
   GOOGLE_OAUTH_CLIENT_SECRET: z.string().default(''),

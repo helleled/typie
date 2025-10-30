@@ -752,6 +752,7 @@ type Query {
   seed: Float!
   site(siteId: ID!): Site!
   stats: JSON!
+  systemInfo: SystemInfo!
   welcome: Welcome!
   widgets: [Widget!]!
 }
@@ -909,20 +910,16 @@ type Subscription {
 
 enum SubscriptionState {
   ACTIVE
-  INACTIVE
   EXPIRED
-  CANCELED
+  IN_GRACE_PERIOD
+  WILL_ACTIVATE
+  WILL_EXPIRE
 }
 
 type Subscription_ {
   id: ID!
   planId: ID!
   userId: ID!
-  user: User
-  plan: Plan
-  state: SubscriptionState
-  startsAt: DateTime
-  expiresAt: DateTime
 }
 
 input SyncCanvasInput {
@@ -937,6 +934,10 @@ input SyncPostInput {
   data: String!
   postId: ID!
   type: PostSyncType!
+}
+
+type SystemInfo {
+  offlineMode: Boolean!
 }
 
 input UnfurlEmbedInput {

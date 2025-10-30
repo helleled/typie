@@ -7,7 +7,7 @@ import { NotFoundError, TypieError } from '@/errors';
 import { delay } from '@/utils/promise';
 import { redeemCodeSchema } from '@/validation';
 import { builder } from '../builder';
-import { CreditCode, isTypeOf, PlanRule, Subscription, UserBillingKey } from '../objects';
+import { CreditCode, isTypeOf, PaymentInvoice, Plan, PlanRule, Subscription, UserBillingKey } from '../objects';
 
 CreditCode.implement({
   isTypeOf: isTypeOf(TableCode.CREDIT_CODES),
@@ -15,6 +15,33 @@ CreditCode.implement({
     id: t.exposeID('id'),
     code: t.exposeString('code'),
     amount: t.exposeInt('amount'),
+  }),
+});
+
+PaymentInvoice.implement({
+  isTypeOf: isTypeOf(TableCode.PAYMENT_INVOICES),
+  fields: (t) => ({
+    id: t.exposeID('id'),
+    amount: t.exposeInt('amount'),
+    paidAt: t.field({ type: 'DateTime', resolve: (self) => self.paidAt }),
+  }),
+});
+
+Plan.implement({
+  isTypeOf: isTypeOf(TableCode.PLANS),
+  fields: (t) => ({
+    id: t.exposeID('id'),
+    name: t.exposeString('name'),
+    price: t.exposeInt('price'),
+  }),
+});
+
+Subscription.implement({
+  isTypeOf: isTypeOf(TableCode.SUBSCRIPTIONS),
+  fields: (t) => ({
+    id: t.exposeID('id'),
+    userId: t.exposeID('userId'),
+    planId: t.exposeID('planId'),
   }),
 });
 

@@ -544,9 +544,9 @@ enum NoteState {
 }
 
 type PaymentInvoice {
-  dueAt: DateTime!
+  amount: Int!
   id: ID!
-  state: PaymentInvoiceState!
+  paidAt: DateTime!
 }
 
 enum PaymentInvoiceState {
@@ -580,12 +580,9 @@ input PersistBlobAsImageInput {
 }
 
 type Plan {
-  availability: PlanAvailability!
-  fee: Int!
   id: ID!
-  interval: PlanInterval!
   name: String!
-  rule: PlanRule!
+  price: Int!
 }
 
 enum PlanAvailability {
@@ -896,7 +893,7 @@ type SpellingError {
 
 input SubscribeOrChangePlanWithInAppPurchaseInput {
   data: String!
-  store: InAppPurchaseStore!
+  store: String!
 }
 
 input SubscribePlanWithBillingKeyInput {
@@ -919,12 +916,9 @@ enum SubscriptionState {
 }
 
 type Subscription_ {
-  expiresAt: DateTime!
   id: ID!
-  plan: Plan!
-  startsAt: DateTime!
-  state: SubscriptionState!
-  user: User!
+  planId: ID!
+  userId: ID!
 }
 
 input SyncCanvasInput {

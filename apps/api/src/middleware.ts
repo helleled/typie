@@ -16,6 +16,7 @@ export const cors = (): MiddlewareHandler => {
         'http://localhost:4100',
         'http://localhost:4200',
         'http://localhost:4300',
+        'http://localhost:5173',
       ]
     : [env.WEBSITE_URL, env.USERSITE_URL];
 
@@ -37,7 +38,7 @@ export const cors = (): MiddlewareHandler => {
       // In production, check if origin matches USERSITE pattern (wildcard subdomains)
       if (!dev && env.USERSITE_URL.includes('*')) {
         const pattern = env.USERSITE_URL.replace(/\*/g, '[^.]+');
-        const regex = new RegExp(`^${pattern});
+        const regex = new RegExp(`^${pattern}$`);
         if (regex.test(origin)) {
           return origin;
         }

@@ -3,7 +3,6 @@
   import { flex } from '@typie/styled-system/patterns';
   import { Button, Checkbox, Modal, SegmentButtons, TextInput } from '@typie/ui/components';
   import { createForm, FormError } from '@typie/ui/form';
-  import { Toast } from '@typie/ui/notification';
   import { comma } from '@typie/ui/utils';
   import mixpanel from 'mixpanel-browser';
   import { z } from 'zod';
@@ -28,10 +27,6 @@
       fragment DashboardLayout_PreferenceModal_BillingTab_UpdatePaymentMethodModal_user on User {
         id
         credit
-
-        subscription {
-          id
-        }
       }
     `),
   );
@@ -102,22 +97,17 @@
       mixpanel.track('update_payment_billing_key');
       fb.track('AddPaymentInfo');
 
-      if ($user.subscription) {
-        Toast.success('카드 정보가 변경되었어요.');
-        open = false;
-      } else {
-        if (interval === PlanInterval.MONTHLY) {
-          await subscribePlanWithBillingKey({ planId: PlanId.FULL_ACCESS_1MONTH_WITH_BILLING_KEY });
-          mixpanel.track('enroll_plan', { planId: PlanId.FULL_ACCESS_1MONTH_WITH_BILLING_KEY });
-          fb.track('Subscribe', { value: '4900.00', currency: 'KRW', predicted_ltv: '4900.00' });
-        } else if (interval === PlanInterval.YEARLY) {
-          await subscribePlanWithBillingKey({ planId: PlanId.FULL_ACCESS_1YEAR_WITH_BILLING_KEY });
-          mixpanel.track('enroll_plan', { planId: PlanId.FULL_ACCESS_1YEAR_WITH_BILLING_KEY });
-          fb.track('Subscribe', { value: '49000.00', currency: 'KRW', predicted_ltv: '49000.00' });
-        }
-
-        open = false;
+      if (interval === PlanInterval.MONTHLY) {
+        await subscribePlanWithBillingKey({ planId: PlanId.FULL_ACCESS_1MONTH_WITH_BILLING_KEY });
+        mixpanel.track('enroll_plan', { planId: PlanId.FULL_ACCESS_1MONTH_WITH_BILLING_KEY });
+        fb.track('Subscribe', { value: '4900.00', currency: 'KRW', predicted_ltv: '4900.00' });
+      } else if (interval === PlanInterval.YEARLY) {
+        await subscribePlanWithBillingKey({ planId: PlanId.FULL_ACCESS_1YEAR_WITH_BILLING_KEY });
+        mixpanel.track('enroll_plan', { planId: PlanId.FULL_ACCESS_1YEAR_WITH_BILLING_KEY });
+        fb.track('Subscribe', { value: '49000.00', currency: 'KRW', predicted_ltv: '49000.00' });
       }
+
+      open = false;
     },
     onError: (error) => {
       const errorMessages: Record<string, string> = {
@@ -184,83 +174,79 @@
 </script>
 
 <Modal style={css.raw({ padding: '24px', maxWidth: '480px' })} bind:open>
-  <h2 class={css({ fontSize: '16px', fontWeight: 'semibold', color: 'text.default', marginBottom: '24px' })}>
-    {$user.subscription ? '결제 수단 변경' : '플랜 업그레이드'}
-  </h2>
+  <h2 class={css({ fontSize: '16px', fontWeight: 'semibold', color: 'text.default', marginBottom: '24px' })}>플랜 업그레이드</h2>
 
   <form class={flex({ direction: 'column', gap: '24px' })} onsubmit={form.handleSubmit}>
-    {#if !$user.subscription}
-      <div class={flex({ direction: 'column', gap: '16px' })}>
-        <div>
-          <div class={css({ fontSize: '13px', fontWeight: 'medium', color: 'text.default', marginBottom: '8px' })}>플랜 선택</div>
-          <div class={css({ position: 'relative' })}>
-            <SegmentButtons
-              items={[
-                { label: '월 4,900원', value: PlanInterval.MONTHLY },
-                { label: '연 49,000원', value: PlanInterval.YEARLY },
-              ]}
-              onselect={(value) => {
-                interval = value;
-              }}
-              size="sm"
-              value={interval}
-            />
+    <div class={flex({ direction: 'column', gap: '16px' })}>
+      <div>
+        <div class={css({ fontSize: '13px', fontWeight: 'medium', color: 'text.default', marginBottom: '8px' })}>플랜 선택</div>
+        <div class={css({ position: 'relative' })}>
+          <SegmentButtons
+            items={[
+              { label: '월 4,900원', value: PlanInterval.MONTHLY },
+              { label: '연 49,000원', value: PlanInterval.YEARLY },
+            ]}
+            onselect={(value) => {
+              interval = value;
+            }}
+            size="sm"
+            value={interval}
+          />
 
-            <div
-              class={css({
-                position: 'absolute',
-                top: '-8px',
-                right: '4px',
-                borderRadius: 'full',
-                paddingX: '8px',
-                paddingY: '2px',
-                fontSize: '11px',
-                fontWeight: 'semibold',
-                color: 'text.bright',
-                backgroundColor: 'accent.brand.default',
-                pointerEvents: 'none',
-              })}
-            >
-              2개월 무료
-            </div>
-          </div>
-        </div>
-
-        <div
-          class={css({
-            borderRadius: '6px',
-            borderWidth: '1px',
-            borderColor: 'border.subtle',
-            padding: '12px',
-            backgroundColor: 'surface.default',
-          })}
-        >
-          <div class={flex({ justify: 'space-between', fontSize: '13px', marginBottom: '6px' })}>
-            <span class={css({ color: 'text.subtle' })}>플랜 금액</span>
-            <span class={css({ color: 'text.default' })}>{comma(planFee)}원</span>
-          </div>
-          {#if creditDiscount > 0}
-            <div class={flex({ justify: 'space-between', fontSize: '13px', marginBottom: '6px' })}>
-              <span class={css({ color: 'text.subtle' })}>크레딧 차감</span>
-              <span class={css({ color: 'accent.brand.default', fontWeight: 'medium' })}>-{comma(creditDiscount)}원</span>
-            </div>
-          {/if}
           <div
             class={css({
-              marginTop: '8px',
-              paddingTop: '8px',
-              borderTopWidth: '1px',
-              borderColor: 'border.subtle',
+              position: 'absolute',
+              top: '-8px',
+              right: '4px',
+              borderRadius: 'full',
+              paddingX: '8px',
+              paddingY: '2px',
+              fontSize: '11px',
+              fontWeight: 'semibold',
+              color: 'text.bright',
+              backgroundColor: 'accent.brand.default',
+              pointerEvents: 'none',
             })}
           >
-            <div class={flex({ justify: 'space-between', fontSize: '14px', fontWeight: 'semibold' })}>
-              <span class={css({ color: 'text.default' })}>최종 금액</span>
-              <span class={css({ color: 'text.default' })}>{comma(finalAmount)}원</span>
-            </div>
+            2개월 무료
           </div>
         </div>
       </div>
-    {/if}
+
+      <div
+        class={css({
+          borderRadius: '6px',
+          borderWidth: '1px',
+          borderColor: 'border.subtle',
+          padding: '12px',
+          backgroundColor: 'surface.default',
+        })}
+      >
+        <div class={flex({ justify: 'space-between', fontSize: '13px', marginBottom: '6px' })}>
+          <span class={css({ color: 'text.subtle' })}>플랜 금액</span>
+          <span class={css({ color: 'text.default' })}>{comma(planFee)}원</span>
+        </div>
+        {#if creditDiscount > 0}
+          <div class={flex({ justify: 'space-between', fontSize: '13px', marginBottom: '6px' })}>
+            <span class={css({ color: 'text.subtle' })}>크레딧 차감</span>
+            <span class={css({ color: 'accent.brand.default', fontWeight: 'medium' })}>-{comma(creditDiscount)}원</span>
+          </div>
+        {/if}
+        <div
+          class={css({
+            marginTop: '8px',
+            paddingTop: '8px',
+            borderTopWidth: '1px',
+            borderColor: 'border.subtle',
+          })}
+        >
+          <div class={flex({ justify: 'space-between', fontSize: '14px', fontWeight: 'semibold' })}>
+            <span class={css({ color: 'text.default' })}>최종 금액</span>
+            <span class={css({ color: 'text.default' })}>{comma(finalAmount)}원</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div class={flex({ direction: 'column', gap: '12px' })}>
       <div class={css({ fontSize: '13px', fontWeight: 'medium', color: 'text.default', marginBottom: '4px' })}>카드 정보</div>
@@ -388,9 +374,7 @@
     {/if}
 
     <Button style={css.raw({ width: 'full' })} type="submit">
-      {#if $user.subscription}
-        변경하기
-      {:else if finalAmount === 0}
+      {#if finalAmount === 0}
         무료로 시작하기
       {:else}
         {comma(finalAmount)}원 결제하고 시작하기

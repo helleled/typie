@@ -31,10 +31,6 @@
 
           subscription {
             id
-
-            plan {
-              id
-            }
           }
         }
 

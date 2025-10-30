@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 const schema = z.object({
   ANTHROPIC_API_KEY: z.string().default(''),
+  API_URL: z.string().default('http://localhost:3000'),
   APPLE_APP_APPLE_ID: z.coerce.number().default(0),
   APPLE_APP_BUNDLE_ID: z.string().default(''),
   APPLE_IAP_ISSUER_ID: z.string().default(''),

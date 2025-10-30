@@ -1,5 +1,4 @@
 import path from 'node:path';
-import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { renderAsync } from '@resvg/resvg-js';
 import { and, eq } from 'drizzle-orm';
 import { Hono } from 'hono';
@@ -11,7 +10,7 @@ import { match } from 'ts-pattern';
 import twemoji from 'twemoji';
 import { Canvases, db, Entities, first, Folders, Images, Posts } from '@/db';
 import { EntityState, EntityType } from '@/enums';
-import * as aws from '@/external/aws';
+import * as storage from '@/storage/local';
 import type { Env } from '@/context';
 
 export const og = new Hono<Env>();
@@ -224,10 +223,8 @@ const renderCanvas = async (entityId: string) => {
 };
 
 const toDataUri = async (path: string) => {
-  const object = await aws.s3.send(new GetObjectCommand({ Bucket: 'typie-usercontents', Key: `images/${path}` }));
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const source = await object.Body!.transformToByteArray();
-  const buffer = await sharp(source, { failOn: 'none' }).png().toBuffer();
+  const object = await storage.getObject({ bucket: storage.BUCKETS.usercontents, key: `images/${path}` });
+  const buffer = await sharp(object.body, { failOn: 'none' }).png().toBuffer();
 
   return `data:image/png;base64,${Uint8Array.from(buffer).toBase64()}`;
 };

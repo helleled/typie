@@ -1,10 +1,8 @@
-import { PutObjectCommand } from '@aws-sdk/client-s3';
 import * as Sentry from '@sentry/bun';
 import argon2 from 'argon2';
 import dayjs from 'dayjs';
 import { and, asc, desc, eq, gt, gte, inArray, isNotNull, lt, sql, sum } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
-import qs from 'query-string';
 import * as uuid from 'uuid';
 import { redis } from '@/cache';
 import {
@@ -49,10 +47,10 @@ import {
   UserRole,
   UserState,
 } from '@/enums';
-import { env, stack } from '@/env';
+import { env } from '@/env';
 import { TypieError } from '@/errors';
-import * as aws from '@/external/aws';
 import * as portone from '@/external/portone';
+import * as storage from '@/storage/local';
 import { delay } from '@/utils/promise';
 import { getUserUsage } from '@/utils/user';
 import { redeemCodeSchema, userSchema } from '@/validation';
@@ -813,18 +811,15 @@ builder.mutationFields((t) => ({
 
       const prettyJson = JSON.stringify(input.data, null, 2);
 
-      await aws.s3.send(
-        new PutObjectCommand({
-          Bucket: 'typie-misc',
-          Key: key,
-          Body: prettyJson,
-          ContentType: 'application/json',
-          Tagging: qs.stringify({
-            UserId: ctx.session.userId,
-            Environment: stack,
-          }),
-        }),
-      );
+      await storage.putObject({
+        bucket: storage.BUCKETS.misc,
+        key,
+        body: Buffer.from(prettyJson),
+        contentType: 'application/json',
+        tags: {
+          UserId: ctx.session.userId,
+        },
+      });
 
       return ctx.session.userId;
     },

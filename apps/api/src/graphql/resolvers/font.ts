@@ -1,6 +1,7 @@
 import { and, asc, eq } from 'drizzle-orm';
 import { db, first, firstOrThrow, FontFamilies, Fonts, TableCode, validateDbId } from '@/db';
 import { FontFamilyState, FontState } from '@/enums';
+import * as storage from '@/storage/local';
 import { builder } from '../builder';
 import { Blob, Font, FontFamily, isTypeOf } from '../objects';
 
@@ -14,7 +15,7 @@ Font.implement({
 
     family: t.expose('familyId', { type: FontFamily }),
 
-    url: t.string({ resolve: (font) => `https://typie.net/fonts/${font.path}` }),
+    url: t.string({ resolve: (font) => storage.getFileUrl(storage.BUCKETS.usercontents, font.path, 'fonts') }),
   }),
 });
 

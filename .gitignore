@@ -37,3 +37,6 @@ vite.config.ts.timestamp-*
 
 .terraform
 .terraform.lock.hcl
+
+# Local storage
+storage/

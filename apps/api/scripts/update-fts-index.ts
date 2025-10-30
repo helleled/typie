@@ -3,10 +3,8 @@
 import { eq, inArray } from 'drizzle-orm';
 import { Canvases, db, Entities, PostContents, Posts } from '@/db';
 import { EntityState } from '@/enums';
-import { meilisearch } from '@/search';
+import { indexPost, deletePostFromIndex, indexCanvas, deleteCanvasFromIndex } from '@/search';
 
-const postIndex = meilisearch.index('posts');
-const canvasIndex = meilisearch.index('canvases');
 const CHUNK_SIZE = 100;
 
 const processPostsInChunks = async (): Promise<number> => {
@@ -21,7 +19,6 @@ const processPostsInChunks = async (): Promise<number> => {
         title: Posts.title,
         subtitle: Posts.subtitle,
         text: PostContents.text,
-        updatedAt: Posts.updatedAt,
       })
       .from(Posts)
       .innerJoin(Entities, eq(Entities.id, Posts.entityId))
@@ -35,15 +32,14 @@ const processPostsInChunks = async (): Promise<number> => {
       break;
     }
 
-    const documents = posts.map(({ updatedAt, ...rest }) => ({
-      ...rest,
-      updatedAt: updatedAt.unix(),
-    }));
-
-    await postIndex.addDocuments(documents);
+    for (const post of posts) {
+      indexPost(post.id, post.siteId, post.title, post.subtitle, post.text);
+    }
 
     totalProcessed += posts.length;
     offset += CHUNK_SIZE;
+
+    console.log(`Processed ${totalProcessed} posts...`);
 
     if (posts.length < CHUNK_SIZE) {
       break;
@@ -71,11 +67,14 @@ const processDeletedPostsInChunks = async (): Promise<number> => {
       break;
     }
 
-    const ids = deletedPosts.map(({ id }) => id);
-    await postIndex.deleteDocuments(ids);
+    for (const post of deletedPosts) {
+      deletePostFromIndex(post.id);
+    }
 
     totalProcessed += deletedPosts.length;
     offset += CHUNK_SIZE;
+
+    console.log(`Deleted ${totalProcessed} posts from index...`);
 
     if (deletedPosts.length < CHUNK_SIZE) {
       break;
@@ -91,7 +90,7 @@ const processCanvasesInChunks = async (): Promise<number> => {
 
   while (true) {
     const canvases = await db
-      .select({ id: Canvases.id, siteId: Entities.siteId, title: Canvases.title, updatedAt: Canvases.updatedAt })
+      .select({ id: Canvases.id, siteId: Entities.siteId, title: Canvases.title })
       .from(Canvases)
       .innerJoin(Entities, eq(Entities.id, Canvases.entityId))
       .where(eq(Entities.state, EntityState.ACTIVE))
@@ -103,15 +102,14 @@ const processCanvasesInChunks = async (): Promise<number> => {
       break;
     }
 
-    const documents = canvases.map(({ updatedAt, ...rest }) => ({
-      ...rest,
-      updatedAt: updatedAt.unix(),
-    }));
-
-    await canvasIndex.addDocuments(documents);
+    for (const canvas of canvases) {
+      indexCanvas(canvas.id, canvas.siteId, canvas.title);
+    }
 
     totalProcessed += canvases.length;
     offset += CHUNK_SIZE;
+
+    console.log(`Processed ${totalProcessed} canvases...`);
 
     if (canvases.length < CHUNK_SIZE) {
       break;
@@ -139,11 +137,14 @@ const processDeletedCanvasesInChunks = async (): Promise<number> => {
       break;
     }
 
-    const ids = deletedCanvases.map(({ id }) => id);
-    await canvasIndex.deleteDocuments(ids);
+    for (const canvas of deletedCanvases) {
+      deleteCanvasFromIndex(canvas.id);
+    }
 
     totalProcessed += deletedCanvases.length;
     offset += CHUNK_SIZE;
+
+    console.log(`Deleted ${totalProcessed} canvases from index...`);
 
     if (deletedCanvases.length < CHUNK_SIZE) {
       break;
@@ -154,11 +155,14 @@ const processDeletedCanvasesInChunks = async (): Promise<number> => {
 };
 
 try {
+  console.log('Starting FTS index update...');
   await processDeletedPostsInChunks();
   await processPostsInChunks();
   await processCanvasesInChunks();
   await processDeletedCanvasesInChunks();
-} catch {
+  console.log('FTS index update completed successfully.');
+} catch (error) {
+  console.error('Error updating FTS index:', error);
   process.exit(1);
 }
 

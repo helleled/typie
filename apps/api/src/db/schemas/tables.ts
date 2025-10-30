@@ -862,4 +862,17 @@ export const Widgets = sqliteTable(
     uniqueConstraint_1: unique().on(t.userId, t.name),
   }),
 );
-);
+
+export const PostsFts = sqliteTable('posts_fts', {
+  id: text('id').notNull(),
+  siteId: text('site_id').notNull(),
+  title: text('title'),
+  subtitle: text('subtitle'),
+  text: text('text'),
+});
+
+export const CanvasesFts = sqliteTable('canvases_fts', {
+  id: text('id').notNull(),
+  siteId: text('site_id').notNull(),
+  title: text('title'),
+});

@@ -74,29 +74,6 @@ async function checkServices() {
     allHealthy = false;
   }
 
-  // Meilisearch 체크
-  try {
-    const apiEnvPath = path.join(projectRoot, 'apps/api/.env');
-    if (existsSync(apiEnvPath)) {
-      const envContent = readFileSync(apiEnvPath, 'utf8');
-      const meilisearchUrlMatch = envContent.match(/MEILISEARCH_URL=(.+)/);
-
-      if (meilisearchUrlMatch) {
-        const meilisearchUrl = meilisearchUrlMatch[1].trim();
-        const response = await fetch(`${meilisearchUrl}/health`);
-
-        if (response.ok) {
-          log.success('Meilisearch: 연결 성공');
-        } else {
-          throw new Error('Health check failed');
-        }
-      }
-    }
-  } catch {
-    log.warn('Meilisearch: 연결 실패 (선택 사항)');
-    log.info('  시작: meilisearch --master-key="masterKey"');
-  }
-
   // API 서버 체크
   try {
     const response = await fetch('http://localhost:8080/health');

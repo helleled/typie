@@ -21,7 +21,7 @@ import { EntityState, PostLayoutMode } from '@/enums';
 import { Lock } from '@/lock';
 import { schema } from '@/pm';
 import { pubsub } from '@/pubsub';
-import { meilisearch } from '@/search';
+import { indexPost, deletePostFromIndex } from '@/search';
 import { makeText } from '@/utils';
 import { compressZstd, decompressZstd } from '@/utils/compression';
 import { enqueueJob } from '../index';
@@ -300,17 +300,9 @@ export const PostIndexJob = defineJob('post:index', async (postId: string) => {
     .then(firstOrThrow);
 
   if (post.state === EntityState.ACTIVE) {
-    await meilisearch.index('posts').addDocuments([
-      {
-        id: post.id,
-        siteId: post.siteId,
-        title: post.title,
-        subtitle: post.subtitle,
-        text: post.text,
-      },
-    ]);
+    indexPost(post.id, post.siteId, post.title, post.subtitle, post.text);
   } else {
-    await meilisearch.index('posts').deleteDocument(post.id);
+    deletePostFromIndex(post.id);
   }
 });
 

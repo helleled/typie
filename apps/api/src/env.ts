@@ -22,8 +22,6 @@ const schema = z.object({
   KAKAO_CLIENT_ID: z.string().default(''),
   KAKAO_CLIENT_SECRET: z.string().default(''),
   LISTEN_PORT: z.coerce.number().optional(),
-  MEILISEARCH_API_KEY: z.string().default(''),
-  MEILISEARCH_URL: z.string().default('http://localhost:7700'),
   NAVER_CLIENT_ID: z.string().default(''),
   NAVER_CLIENT_SECRET: z.string().default(''),
   OIDC_CLIENT_ID: z.string().default(''),

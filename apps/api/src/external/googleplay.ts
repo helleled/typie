@@ -19,6 +19,10 @@ if (env.GOOGLE_SERVICE_ACCOUNT && env.GOOGLE_PLAY_PACKAGE_NAME) {
 }
 
 export const getSubscription = async (purchaseToken: string) => {
+  if (env.OFFLINE_MODE) {
+    throw new Error('Google Play integration is unavailable in offline mode');
+  }
+
   if (!client) {
     throw new Error('Google Play not configured');
   }

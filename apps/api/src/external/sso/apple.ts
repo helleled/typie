@@ -4,10 +4,18 @@ import { env } from '@/env';
 import type { ExternalUser } from './types';
 
 export const generateAuthorizationUrl = () => {
+  if (env.OFFLINE_MODE) {
+    throw new Error('Apple Sign-In is unavailable in offline mode');
+  }
+
   throw new Error('Not implemented');
 };
 
 export const authorizeUser = async (params: Record<string, string>): Promise<ExternalUser> => {
+  if (env.OFFLINE_MODE) {
+    throw new Error('Apple Sign-In is unavailable in offline mode');
+  }
+
   if (!params.code) {
     throw new Error('Invalid parameters');
   }

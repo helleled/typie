@@ -179,6 +179,11 @@ const MIN_UPDATE_CHARS = 50;
 const SLACK_MESSAGE_LIMIT = 1000;
 
 export const ProcessBmoMentionJob = defineJob('bmo:process-mention', async (event: SlackAppMentionEventPayload) => {
+  if (env.OFFLINE_MODE) {
+    console.log('[BMO Offline] Skipping Slack/Anthropic integration for event:', event.event_ts);
+    return;
+  }
+
   let messageTs: string | undefined;
   let additionalMessageTs: string[] = [];
   let lastUpdateTime = Date.now();

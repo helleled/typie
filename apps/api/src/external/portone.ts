@@ -27,6 +27,10 @@ type IssueBillingKeyParams = {
 };
 type IssueBillingKeyResult = PortOneResult<{ billingKey: string; cardName: string }>;
 export const issueBillingKey = async (params: IssueBillingKeyParams): Promise<IssueBillingKeyResult> => {
+  if (env.OFFLINE_MODE) {
+    return makeFailureResult(new Error('Payment processing is unavailable in offline mode'));
+  }
+
   if (!client) {
     return makeFailureResult(new Error('PortOne not configured'));
   }
@@ -74,6 +78,10 @@ export const issueBillingKey = async (params: IssueBillingKeyParams): Promise<Is
 type DeleteBillingKeyParams = { billingKey: string };
 type DeleteBillingKeyResult = PortOneResult<unknown>;
 export const deleteBillingKey = async (params: DeleteBillingKeyParams): Promise<DeleteBillingKeyResult> => {
+  if (env.OFFLINE_MODE) {
+    return makeFailureResult(new Error('Payment processing is unavailable in offline mode'));
+  }
+
   if (!client) {
     return makeFailureResult(new Error('PortOne not configured'));
   }
@@ -97,6 +105,10 @@ type PayWithBillingKeyParams = {
 };
 type PayWithBillingKeyResult = PortOneResult<{ approvalNumber: string; receiptUrl: string }>;
 export const payWithBillingKey = async (params: PayWithBillingKeyParams): Promise<PayWithBillingKeyResult> => {
+  if (env.OFFLINE_MODE) {
+    return makeFailureResult(new Error('Payment processing is unavailable in offline mode'));
+  }
+
   if (!client) {
     return makeFailureResult(new Error('PortOne not configured'));
   }
@@ -134,6 +146,10 @@ export const payWithBillingKey = async (params: PayWithBillingKeyParams): Promis
 type GetPaymentParams = { paymentId: string };
 type GetPaymentResult = PortOneResult<{ amount: number; customData: string | undefined }>;
 export const getPayment = async (params: GetPaymentParams): Promise<GetPaymentResult> => {
+  if (env.OFFLINE_MODE) {
+    return makeFailureResult(new Error('Payment processing is unavailable in offline mode'));
+  }
+
   if (!client) {
     return makeFailureResult(new Error('PortOne not configured'));
   }
@@ -162,6 +178,10 @@ type GetIdentityVerificationResult = PortOneResult<{
   ci: string;
 }>;
 export const getIdentityVerification = async (params: GetIdentityVerificationParams): Promise<GetIdentityVerificationResult> => {
+  if (env.OFFLINE_MODE) {
+    return makeFailureResult(new Error('Identity verification is unavailable in offline mode'));
+  }
+
   if (!client) {
     return makeFailureResult(new Error('PortOne not configured'));
   }

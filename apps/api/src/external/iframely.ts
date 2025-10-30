@@ -4,6 +4,10 @@ import { env } from '@/env';
 const isConfigured = env.IFRAMELY_API_KEY && env.IFRAMELY_API_KEY.length > 0;
 
 export const unfurl = async (url: string) => {
+  if (env.OFFLINE_MODE) {
+    throw new Error('Link embedding is unavailable in offline mode');
+  }
+
   if (!isConfigured) {
     throw new Error('Iframely not configured');
   }

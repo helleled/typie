@@ -238,9 +238,14 @@ builder.mutationFields((t) => ({
 
       const user = await db.transaction(async (tx) => {
         let avatar;
-        if (externalUser.avatarUrl) {
-          const blob = await ky(externalUser.avatarUrl).blob();
-          avatar = await persistBlobAsImage({ file: new File([blob], externalUser.avatarUrl) });
+        if (externalUser.avatarUrl && !env.OFFLINE_MODE) {
+          try {
+            const blob = await ky(externalUser.avatarUrl).blob();
+            avatar = await persistBlobAsImage({ file: new File([blob], externalUser.avatarUrl) });
+          } catch {
+            const file = await generateRandomAvatar();
+            avatar = await persistBlobAsImage({ file });
+          }
         } else {
           const file = await generateRandomAvatar();
           avatar = await persistBlobAsImage({ file });

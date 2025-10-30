@@ -2,6 +2,7 @@ import { and, asc, eq, getTableColumns } from 'drizzle-orm';
 import * as Y from 'yjs';
 import { db, Entities, first, Folders, PostContents, Posts } from '@/db';
 import { EntityState, EntityVisibility } from '@/enums';
+import { env } from '@/env';
 import { schema } from '@/pm';
 import { generateActivityImage, generateRandomName, makeYDoc } from '@/utils';
 import { builder } from '../builder';
@@ -23,6 +24,19 @@ builder.queryFields((t) => ({
     type: 'String',
     resolve: () => {
       return generateRandomName();
+    },
+  }),
+
+  systemInfo: t.field({
+    type: builder.simpleObject('SystemInfo', {
+      fields: (t) => ({
+        offlineMode: t.boolean(),
+      }),
+    }),
+    resolve: () => {
+      return {
+        offlineMode: env.OFFLINE_MODE,
+      };
     },
   }),
 

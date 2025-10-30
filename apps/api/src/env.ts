@@ -24,6 +24,10 @@ const schema = z.object({
   LISTEN_PORT: z.coerce.number().optional(),
   NAVER_CLIENT_ID: z.string().default(''),
   NAVER_CLIENT_SECRET: z.string().default(''),
+  OFFLINE_MODE: z
+    .string()
+    .default('true')
+    .transform((val) => val === 'true'),
   OIDC_CLIENT_ID: z.string().default(''),
   OIDC_CLIENT_SECRET: z.string().default(''),
   OIDC_JWK: z.string().default(''),

@@ -22,6 +22,11 @@ if (env.GOOGLE_SERVICE_ACCOUNT) {
 
 type SendPushNotificationParams = { userId: string; title: string; body: string };
 export const sendPushNotification = async ({ userId, title, body }: SendPushNotificationParams) => {
+  if (env.OFFLINE_MODE) {
+    console.log('[Firebase Offline] Push notification skipped:', JSON.stringify({ userId, title, body }));
+    return false;
+  }
+
   if (!messaging) {
     console.warn('[Firebase] Push notifications not configured, skipping');
     return false;

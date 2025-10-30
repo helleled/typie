@@ -122,6 +122,11 @@ const normalize = (text: string) => {
 };
 
 export const check = async (text: string) => {
+  if (env.OFFLINE_MODE) {
+    console.log('[Spellcheck Offline] Skipping check for text of length:', text.length);
+    return [];
+  }
+
   const normalized = normalize(text);
 
   if (!normalized.text.trim()) return [];

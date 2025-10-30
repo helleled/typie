@@ -16,7 +16,7 @@ import { seedDatabase } from '../scripts/seed';
 
 const log = logger.getChild('main');
 
-await storage.initializeStorage();
+await storage.initStorage();
 
 // Run database migrations on startup
 log.info('Running database migrations...');

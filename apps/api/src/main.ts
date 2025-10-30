@@ -10,8 +10,11 @@ import { env } from '@/env';
 import { graphql } from '@/graphql';
 import { cors, security } from '@/middleware';
 import { rest } from '@/rest';
+import * as storage from '@/storage/local';
 
 const log = logger.getChild('main');
+
+await storage.initializeStorage();
 
 // Apply security headers middleware
 app.use('*', security());

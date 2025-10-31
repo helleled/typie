@@ -1,0 +1,31 @@
+<script lang="ts">
+  import { Helmet } from '@typie/ui/components';
+  import { graphql } from '$graphql';
+  import CallToAction from './website/(landing)/(index)/CallToAction.svelte';
+  import Features from './website/(landing)/(index)/Features.svelte';
+  import Hero from './website/(landing)/(index)/Hero.svelte';
+  import Testimonials from './website/(landing)/(index)/Testimonials.svelte';
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const query = graphql(`
+    query IndexPage_Query {
+      me {
+        id
+      }
+    }
+  `);
+</script>
+
+<Helmet
+  description="작성, 정리, 공유까지. 글쓰기의 모든 과정을 하나의 도구로 해결하세요."
+  title="타이피 - 작가를 위한 올인원 글쓰기 도구"
+  trailing={null}
+/>
+
+<Hero />
+
+<Features />
+
+<Testimonials />
+
+<CallToAction />

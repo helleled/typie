@@ -26,9 +26,7 @@
     "codegen": "panda codegen",
     "lint:typescript": "tsc"
   },
-  "dependencies": {
-    "@pandacss/preset-base": "^1.4.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@pandacss/dev": "^1.4.1",
     "@typie/tsconfig": "workspace:*",

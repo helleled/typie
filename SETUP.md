@@ -407,11 +407,29 @@ git commit -m "feat: add new feature"
 cd apps/api
 bun x drizzle-kit generate
 
-# 3. 서버 재시작 (자동 마이그레이션 적용)
+# 3. 생성된 SQL 파일에서 백틱(`) 제거 (중요!)
+# drizzle-kit은 MySQL 스타일 백틱을 생성하지만 SQLite와 호환되지 않음
+
+# 4. 서버 재시작 (자동 마이그레이션 적용)
 bun run dev
 ```
 
-### 3. UI 컴포넌트 개발
+### 3. 데이터베이스 설정 검증
+
+```bash
+# 자동 설정 테스트 실행
+cd apps/api
+bun run setup-test
+```
+
+이 테스트는 다음을 검증합니다:
+- ✅ 데이터베이스 자동 초기화
+- ✅ 모든 핵심 테이블 생성
+- ✅ FTS 전체 텍스트 검색 테이블
+- ✅ 초기 데이터 시딩
+- ✅ 검색 기능 동작 확인
+
+### 4. UI 컴포넌트 개발
 
 ```bash
 # 1. styled-system 변경 시

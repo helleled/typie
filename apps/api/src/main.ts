@@ -20,7 +20,7 @@ await storage.initStorage();
 
 // Run database migrations on startup
 log.info('Running database migrations...');
-runMigrations();
+await runMigrations();
 log.info('Database migrations completed');
 
 // Seed database with initial data

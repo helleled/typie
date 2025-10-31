@@ -17,6 +17,11 @@ export const sendEmail = async ({ subject, recipient, body }: SendEmailParams) =
     return;
   }
 
+  if (!aws.ses) {
+    console.warn('[Email] SES client not available, skipping email send');
+    return;
+  }
+
   await aws.ses.send(
     new SendEmailCommand({
       Source: '타이피 <hello@typie.co>',

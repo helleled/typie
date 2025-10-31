@@ -28,7 +28,6 @@
     "@ctrl/tinycolor": "^4.2.0",
     "@floating-ui/dom": "^1.7.4",
     "@pandacss/dev": "^1.4.1",
-    "@pandacss/preset-base": "^1.4.1",
     "@sveltejs/kit": "^2.46.4",
     "@sveltejs/vite-plugin-svelte": "^6.2.1",
     "@tiptap/core": "^3.6.6",

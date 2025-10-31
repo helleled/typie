@@ -23,7 +23,6 @@
     "@number-flow/svelte": "^0.3.9",
     "@observablehq/plot": "^0.6.17",
     "@pandacss/dev": "^1.4.1",
-    "@pandacss/preset-base": "^1.4.1",
     "@portone/browser-sdk": "^0.1.0",
     "@sindresorhus/string-hash": "^2.0.0",
     "@sveltejs/kit": "^2.46.4",

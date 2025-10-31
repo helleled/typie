@@ -1,73 +1,11 @@
 <script lang="ts">
-  import { css } from '@typie/styled-system/css';
-  import { center, flex } from '@typie/styled-system/patterns';
-  import { Helmet, RingSpinner } from '@typie/ui/components';
-  import { deserializeOAuthState } from '@typie/ui/utils';
-  import qs from 'query-string';
   import { onMount } from 'svelte';
-  import { match } from 'ts-pattern';
-  import { SingleSignOnProvider } from '@/enums';
-  import { page } from '$app/state';
-  import Logo from '$assets/logos/logo.svg?component';
-  import { env } from '$env/dynamic/public';
-  import { graphql } from '$graphql';
+  import { goto } from '$app/navigation';
 
-  const authorizeSingleSignOn = graphql(`
-    mutation SSOProviderPage_AuthorizeSingleSignOn_Mutation($input: AuthorizeSingleSignOnInput!) {
-      authorizeSingleSignOn(input: $input)
-    }
-  `);
-
-  onMount(async () => {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const { referral_code } = deserializeOAuthState(page.url.searchParams.get('state')!);
-
-    try {
-      const resp = await authorizeSingleSignOn({
-        provider: match(page.params.provider)
-          .with('google', () => SingleSignOnProvider.GOOGLE)
-          .with('kakao', () => SingleSignOnProvider.KAKAO)
-          .with('naver', () => SingleSignOnProvider.NAVER)
-          .run(),
-        params: Object.fromEntries(page.url.searchParams),
-        referralCode: referral_code,
-      });
-
-      location.href = qs.stringifyUrl({
-        url: `${env.PUBLIC_AUTH_URL}/authorize`,
-        query: {
-          client_id: env.PUBLIC_OIDC_CLIENT_ID,
-          response_type: 'code',
-          ...deserializeOAuthState(resp),
-        },
-      });
-    } catch {
-      const state = page.url.searchParams.get('state');
-      const loginUrl = qs.stringifyUrl({
-        url: `${env.PUBLIC_AUTH_URL}/login`,
-        query: {
-          ...(state ? deserializeOAuthState(state) : {}),
-          toast: '로그인 중 오류가 발생했습니다. 다시 시도해주세요.',
-        },
-      });
-      location.replace(loginUrl);
-    }
+  onMount(() => {
+    // Redirect to dashboard for local-only mode
+    goto('/website/', { replaceState: true });
   });
 </script>
 
-<Helmet title="로그인 중..." />
-
-<div class={flex({ flexDirection: 'column', gap: '24px' })}>
-  <div class={flex({ justifyContent: 'flex-start' })}>
-    <Logo class={css({ height: '32px' })} />
-  </div>
-
-  <div class={flex({ flexDirection: 'column', gap: '4px' })}>
-    <h1 class={css({ fontSize: { base: '22px', lg: '24px' }, fontWeight: 'extrabold' })}>로그인 중...</h1>
-    <div class={css({ fontSize: { base: '13px', lg: '14px' }, color: 'text.faint' })}>잠시만 기다려주세요.</div>
-  </div>
-
-  <div class={center({ height: '100px' })}>
-    <RingSpinner style={css.raw({ size: '50px', color: 'text.brand' })} />
-  </div>
-</div>
+<!-- Authentication not needed for local-only mode - redirecting to dashboard -->

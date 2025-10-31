@@ -106,69 +106,31 @@ export const deriveContext = async (c: ServerContext): Promise<Context> => {
     ' $loaders': new Map(),
   };
 
-  // Development mode: create a default session for localhost
-  if (dev) {
-    const devUserId = c.req.header('X-User-Id');
+  // Local-only mode: always use default local user
+  const localUser = await db
+    .select({ id: Users.id })
+    .from(Users)
+    .where(sql`${Users.email} = 'local@typie.app'`)
+    .then(first);
 
-    if (devUserId) {
-      // Use custom user ID if provided via header
-      ctx.session = {
-        id: 'dev-session',
-        userId: devUserId,
-      };
-    } else {
-      // Try to find the first user in the database for development
-      const firstUser = await db.select({ id: Users.id }).from(Users).limit(1).then(first);
-
-      if (firstUser) {
-        ctx.session = {
-          id: 'dev-session',
-          userId: firstUser.id,
-        };
-      } else {
-        // If no user exists in development, create a default dev user
-        const defaultDevUser = await db.insert(Users).values({
-          email: 'dev@typie.local',
-          name: 'Development User',
-          state: UserState.ACTIVE,
-          role: UserRole.USER,
-        }).returning({ id: Users.id }).then(firstOrThrow);
-        
-        ctx.session = {
-          id: 'dev-session',
-          userId: defaultDevUser.id,
-        };
-      }
-    }
+  if (localUser) {
+    ctx.session = {
+      id: 'local-session',
+      userId: localUser.id,
+    };
   } else {
-    // Production mode: verify JWT token
-    const authorization = c.req.header('Authorization');
-    const accessToken = authorization?.match(/^Bearer\s+(.+)$/)?.[1];
-    if (accessToken && publicKey) {
-      try {
-        const { payload } = await jose.jwtVerify(accessToken, publicKey as Parameters<typeof jose.jwtVerify>[1]);
-        const { sub, sid } = payload;
-
-        if (!sub || !sid) {
-          throw new Error('Invalid access token');
-        }
-
-        const session = await db
-          .select({ id: UserSessions.id, userId: UserSessions.userId })
-          .from(UserSessions)
-          .where(and(eq(UserSessions.id, sid as string), eq(UserSessions.userId, sub)))
-          .then(firstOrThrow);
-
-        const impersonatedUserId = await redis.get(`admin:impersonate:${session.id}`);
-
-        ctx.session = {
-          id: session.id,
-          userId: impersonatedUserId ?? session.userId,
-        };
-      } catch {
-        throw new HTTPException(401);
-      }
-    }
+    // If no local user exists, create one
+    const defaultLocalUser = await db.insert(Users).values({
+      email: 'local@typie.app',
+      name: 'Local User',
+      state: UserState.ACTIVE,
+      role: UserRole.USER,
+    }).returning({ id: Users.id }).then(firstOrThrow);
+    
+    ctx.session = {
+      id: 'local-session',
+      userId: defaultLocalUser.id,
+    };
   }
 
   return ctx;

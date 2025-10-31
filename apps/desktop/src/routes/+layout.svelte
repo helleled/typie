@@ -8,9 +8,9 @@
   import { setupThemeContext } from '@typie/ui/context';
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { graphql } from '$lib/graphql';
-  import { systemInfo } from '$lib/system-info';
+  import { graphql } from '$graphql';
   import { SYSTEM_INFO_QUERY } from '$lib/graphql/queries';
+  import { systemInfo } from '$lib/system-info';
 
   let { children } = $props();
 
@@ -44,8 +44,8 @@
     try {
       const result = await graphql(SYSTEM_INFO_QUERY);
       systemInfo.set(result.systemInfo);
-    } catch (error) {
-      console.error('Failed to load system info:', error);
+    } catch (err) {
+      console.error('Failed to load system info:', err);
       // Default to offline mode if we can't fetch system info
       systemInfo.set({ offlineMode: true });
     }
@@ -53,7 +53,7 @@
 
   onMount(async () => {
     await loadSystemInfo();
-    
+
     onOpenUrl((urls) => {
       const url = new URL(urls[0]);
       goto(`${url.pathname}${url.search}`);

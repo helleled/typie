@@ -1,19 +1,9 @@
 <script lang="ts">
   import { Helmet } from '@typie/ui/components';
-  import { graphql } from '$graphql';
   import CallToAction from './(landing)/(index)/CallToAction.svelte';
   import Features from './(landing)/(index)/Features.svelte';
   import Hero from './(landing)/(index)/Hero.svelte';
-  import Testimonials from './(landing)/(index)/Testimonials.svelte';
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const query = graphql(`
-    query IndexPage_Query {
-      me {
-        id
-      }
-    }
-  `);
+  import Testimonials from './website/(landing)/(index)/Testimonials.svelte';
 </script>
 
 <Helmet

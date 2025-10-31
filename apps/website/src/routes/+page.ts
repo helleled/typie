@@ -1,8 +1,2 @@
-import { redirect } from '@sveltejs/kit';
-import type { IndexPage_Query_AfterLoad } from './website/(landing)/(index)/$graphql';
-
-export const _IndexPage_Query_AfterLoad: IndexPage_Query_AfterLoad = async ({ query }) => {
-  if (query.me) {
-    redirect(302, '/initial');
-  }
-};
+// Landing page - no auth logic needed
+// Public page that doesn't require authentication

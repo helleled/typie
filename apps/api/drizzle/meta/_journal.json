@@ -8,6 +8,13 @@
       "when": 1761837891531,
       "tag": "0000_unknown_madame_masque",
       "breakpoints": false
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1761876187817,
+      "tag": "0001_good_photon",
+      "breakpoints": false
     }
   ]
 }

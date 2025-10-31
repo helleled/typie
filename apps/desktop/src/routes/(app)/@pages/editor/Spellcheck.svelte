@@ -17,6 +17,7 @@
   import SpellCheckIcon from '~icons/lucide/spell-check';
   import { graphql } from '$graphql';
   import { systemInfo } from '$lib/system-info';
+  import PlanUpgradeModal from '../PlanUpgradeModal.svelte';
   import ToolbarButton from './ToolbarButton.svelte';
   import type { Ref } from '@typie/ui/utils';
 
@@ -40,6 +41,7 @@
 
   let inflight = $state(false);
   let mounted = $state(false);
+  let planUpgradeOpen = $state(false);
 
   let errors = $state<SpellcheckError[]>([]);
   let activeError = $state<SpellcheckError>();

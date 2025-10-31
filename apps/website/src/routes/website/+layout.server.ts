@@ -2,7 +2,7 @@ import { env } from '$env/dynamic/public';
 
 const getStartUrl = (userAgent?: string) => {
   if (!userAgent) {
-    return env.PUBLIC_AUTH_URL;
+    return env.PUBLIC_OFFLINE_MODE === 'true' ? '/' : env.PUBLIC_AUTH_URL;
   }
 
   if (/android/i.test(userAgent)) {
@@ -10,7 +10,7 @@ const getStartUrl = (userAgent?: string) => {
   } else if (/iphone|ipad|ipod/i.test(userAgent ?? '')) {
     return 'https://apps.apple.com/app/id6745595771';
   } else {
-    return env.PUBLIC_AUTH_URL;
+    return env.PUBLIC_OFFLINE_MODE === 'true' ? '/' : env.PUBLIC_AUTH_URL;
   }
 };
 
@@ -19,5 +19,6 @@ export const load = (event) => {
 
   return {
     startUrl: getStartUrl(userAgent),
+    offlineMode: env.PUBLIC_OFFLINE_MODE === 'true',
   };
 };

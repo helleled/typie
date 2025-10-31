@@ -4,7 +4,7 @@ import type { Reroute } from '@sveltejs/kit';
 export const reroute: Reroute = async ({ url }) => {
   if (url.pathname === '/graphql' || url.pathname === '/robots.txt') {
     return url.pathname;
-  } else if (url.origin === env.PUBLIC_AUTH_URL) {
+  } else if (url.origin === env.PUBLIC_AUTH_URL && env.PUBLIC_OFFLINE_MODE !== 'true') {
     return `/auth${url.pathname}`;
   } else if (url.origin === env.PUBLIC_WEBSITE_URL) {
     // In development mode, don't reroute root path

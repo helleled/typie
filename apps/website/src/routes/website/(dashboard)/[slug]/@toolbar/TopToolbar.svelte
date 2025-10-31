@@ -24,7 +24,6 @@
   import StickyNoteIcon from '~icons/lucide/sticky-note';
   import TableIcon from '~icons/lucide/table';
   import HorizontalRuleIcon from '~icons/typie/horizontal-rule';
-  // import { fragment, graphql } from '$graphql';
   import ToolbarButton from './ToolbarButton.svelte';
   import ToolbarDropdownButton from './ToolbarDropdownButton.svelte';
   import ToolbarIcon from './ToolbarIcon.svelte';
@@ -32,7 +31,6 @@
   import type { Editor } from '@tiptap/core';
   import type { SystemStyleObject } from '@typie/styled-system/types';
   import type { Ref } from '@typie/ui/utils';
-  import type { Editor_TopToolbar_site, Optional } from '$graphql';
 
   type Props = {
     editor?: Ref<Editor>;
@@ -41,24 +39,7 @@
 
   let { editor, style }: Props = $props();
 
-  // const site = fragment(
-//   _site,
-//   graphql(`
-//     fragment Editor_TopToolbar_site on Site {
-//       id
-//
-//       user {
-//         id
-//
-//         subscription {
-//           id
-//         }
-//       }
-//     }
-//   `),
-// );
-
-  const app = getAppContext();
+    const app = getAppContext();
   const editorContext = getEditorContext();
 
   const toolbarSize = $derived(app.preference.current.toolbarStyle === 'compact' ? 'medium' : 'large');

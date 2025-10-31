@@ -2,10 +2,7 @@
   import { css } from '@typie/styled-system/css';
   import { flex } from '@typie/styled-system/patterns';
   import { Icon, Modal } from '@typie/ui/components';
-  import CreditCardIcon from '~icons/lucide/credit-card';
   import FlaskConicalIcon from '~icons/lucide/flask-conical';
-  import GemIcon from '~icons/lucide/gem';
-  import GiftIcon from '~icons/lucide/gift';
   import KeyboardIcon from '~icons/lucide/keyboard';
   import LayoutIcon from '~icons/lucide/layout';
   import LayoutTemplateIcon from '~icons/lucide/layout-template';
@@ -16,14 +13,11 @@
   import { replaceState } from '$app/navigation';
   import { page } from '$app/state';
   import { fragment, graphql } from '$graphql';
-  import BillingTab from './BillingTab.svelte';
   import EditorTab from './EditorTab.svelte';
   import FontTab from './FontTab.svelte';
   import InterfaceTab from './InterfaceTab.svelte';
   import LaboratoryTab from './LaboratoryTab.svelte';
-  import PlanTab from './PlanTab.svelte';
   import ProfileTab from './ProfileTab.svelte';
-  import ReferralTab from './ReferralTab.svelte';
   import SecurityTab from './SecurityTab.svelte';
   import ShortcutsTab from './ShortcutsTab.svelte';
   import TemplateTab from './TemplateTab.svelte';
@@ -50,18 +44,12 @@
       fragment DashboardLayout_PreferenceModal_user on User {
         id
 
-        subscription {
-          id
-        }
-
         ...DashboardLayout_PreferenceModal_ProfileTab_user
         ...DashboardLayout_PreferenceModal_SecurityTab_user
         ...DashboardLayout_PreferenceModal_EditorTab_user
         ...DashboardLayout_PreferenceModal_InterfaceTab_user
         ...DashboardLayout_PreferenceModal_FontTab_user
         ...DashboardLayout_PreferenceModal_TemplateTab_user
-        ...DashboardLayout_PreferenceModal_PlanTab_user
-        ...DashboardLayout_PreferenceModal_ReferralTab_user
         ...DashboardLayout_PreferenceModal_LaboratoryTab_user
         ...DashboardLayout_PreferenceModal_ShortcutsTab_user
       }
@@ -117,29 +105,6 @@
           label: '템플릿',
           icon: LayoutTemplateIcon,
           component: TemplateTab,
-        },
-      ],
-    },
-    {
-      label: '구독',
-      tabs: [
-        {
-          path: '/preference/plan',
-          label: '플랜',
-          icon: GemIcon,
-          component: PlanTab,
-        },
-        {
-          path: '/preference/billing',
-          label: '결제',
-          icon: CreditCardIcon,
-          component: BillingTab,
-        },
-        {
-          path: '/preference/referral',
-          label: '초대',
-          icon: GiftIcon,
-          component: ReferralTab,
         },
       ],
     },

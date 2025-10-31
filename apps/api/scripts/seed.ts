@@ -151,7 +151,6 @@ async function seedPlans() {
       }
     });
   }
-}
 
 // Run if called directly
 if (import.meta.main) {

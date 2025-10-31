@@ -96,23 +96,52 @@ cd packages/styled-system && bun run codegen
 
 ## Database Setup Process
 
-To properly set up the SQLite database from scratch:
+The SQLite database is now automatically initialized when the API server starts. No manual drizzle commands are required.
+
+### Automatic Setup (Recommended)
+
+Simply start the API server:
+
+```bash
+cd apps/api
+bun run src/main.ts
+```
+
+The server will automatically:
+1. Detect if the database is uninitialized
+2. Apply schema migrations from `drizzle/*.sql` files
+3. Create FTS tables for full-text search
+4. Seed initial data (plans, etc.) only once
+
+### Manual Setup (Advanced)
+
+If you need to reset the database:
 
 ```bash
 cd apps/api
 
-# 1. Remove existing database (if any)
+# 1. Remove existing database
 rm -f data/typie.db
 
-# 2. Apply schema using push
-bun x drizzle-kit push --force
-
-# 3. Apply FTS tables
-sqlite3 data/typie.db < drizzle/0000_add_fts_tables.sql
-
-# 4. Start API server to seed initial data
+# 2. Start API server (will auto-initialize)
 bun run src/main.ts
 ```
+
+### Setup Verification
+
+Run the automated setup test to verify everything works:
+
+```bash
+cd apps/api
+bun run scripts/setup-test.ts
+```
+
+This test will:
+1. Create a fresh database
+2. Run the automatic setup process
+3. Verify all core tables exist
+4. Confirm FTS tables are functional
+5. Check that seeding worked correctly
 
 ## Verification
 
@@ -188,7 +217,19 @@ This matches the database schema and no frontend queries were found that use non
 When modifying the database schema:
 
 1. Update table definitions in `/apps/api/src/db/schemas/tables.ts`
-2. Apply changes: `cd apps/api && bun x drizzle-kit push --force`
-3. If adding FTS tables, update `/apps/api/drizzle/0000_add_fts_tables.sql` and apply manually
+2. Generate new migration: `cd apps/api && bun x drizzle-kit generate`
+3. Clean the generated SQL file to remove backticks (replace ` with nothing)
+4. Add the cleaned SQL file to `/apps/api/drizzle/` folder
+5. Update the migration file list in `/apps/api/src/db/index.ts` if needed
+6. If adding FTS tables, update `/apps/api/drizzle/0000_add_fts_tables.sql`
 
-**Do NOT** use `drizzle-kit generate` for SQLite migrations as it generates incompatible syntax.
+**Important**: The auto-migration system will handle applying new SQL files automatically when the server restarts. The migration files must be cleaned of backticks to be SQLite compatible.
+
+### Migration File Naming
+
+Follow the existing naming pattern:
+- `0000_unknown_madame_masque.sql` - Main schema
+- `0001_good_photon.sql` - Schema updates
+- `0000_add_fts_tables.sql` - FTS tables (always applied)
+
+The auto-migration system processes files in alphabetical order, so name new files accordingly.

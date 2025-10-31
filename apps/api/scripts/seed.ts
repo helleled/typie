@@ -4,6 +4,7 @@ import { logger } from '@typie/lib';
 import { PlanId } from '@/const';
 import { db, Plans } from '@/db';
 import { PlanAvailability, PlanInterval } from '@/enums';
+import { sql } from 'drizzle-orm';
 
 const log = logger.getChild('seed');
 
@@ -11,6 +12,14 @@ export async function seedDatabase() {
   log.info('Seeding database...');
 
   try {
+    // Check if plans are already seeded
+    const existingPlans = await db.select({ count: sql<number>`count(*)` }).from(Plans).get();
+    
+    if (existingPlans && existingPlans.count > 0) {
+      log.info('Database already seeded, skipping');
+      return;
+    }
+
     await db.transaction(async (tx) => {
       // Seed plans (insert or ignore if already exists)
       const plans = [

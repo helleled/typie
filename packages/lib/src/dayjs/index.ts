@@ -20,3 +20,6 @@ dayjs.extend(kst);
 dayjs.extend(formatAs);
 
 dayjs.locale('ko');
+
+export { dayjs };
+export default dayjs;

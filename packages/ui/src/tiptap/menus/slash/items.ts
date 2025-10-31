@@ -2,7 +2,7 @@ import ChevronsDownUpIcon from '~icons/lucide/chevrons-down-up';
 import CodeIcon from '~icons/lucide/code';
 import CodeXmlIcon from '~icons/lucide/code-xml';
 import FileUpIcon from '~icons/lucide/file-up';
-import FootnotesIcon from '~icons/lucide/footnote';
+import FileTextIcon from '~icons/lucide/file-text';
 import GalleryVerticalEndIcon from '~icons/lucide/gallery-vertical-end';
 import ImageIcon from '~icons/lucide/image';
 import ListIcon from '~icons/lucide/list';
@@ -69,7 +69,7 @@ export const menuItems: MenuItem[] = [
     group: 'block',
     name: '각주',
     keywords: ['footnote'],
-    icon: FootnotesIcon,
+    icon: FileTextIcon,
     command: ({ editor, range }) => {
       chain(editor, range).insertFootnote().run();
     },

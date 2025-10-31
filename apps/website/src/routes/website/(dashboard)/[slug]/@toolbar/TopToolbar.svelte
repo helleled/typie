@@ -11,7 +11,7 @@
   import CodeXmlIcon from '~icons/lucide/code-xml';
   import FilePlusIcon from '~icons/lucide/file-plus';
   import FileUpIcon from '~icons/lucide/file-up';
-  import FootnoteIcon from '~icons/lucide/footnote';
+  import FileTextIcon from '~icons/lucide/file-text';
   import GalleryVerticalEndIcon from '~icons/lucide/gallery-vertical-end';
   import ImageIcon from '~icons/lucide/image';
   import InfoIcon from '~icons/lucide/info';
@@ -249,7 +249,7 @@
 
     <ToolbarButton
       disabled={!editor?.current.can().insertFootnote()}
-      icon={FootnoteIcon}
+      icon={FileTextIcon}
       keys={['Mod', 'Alt', 'F']}
       label="각주"
       onclick={() => {

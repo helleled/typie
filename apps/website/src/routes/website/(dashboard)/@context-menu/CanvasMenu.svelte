@@ -52,7 +52,6 @@
             id
             ...DashboardLayout_EntityTree_site
             ...DashboardLayout_TrashModal_site
-            ...DashboardLayout_PlanUsageWidget_site
           }
         }
       }

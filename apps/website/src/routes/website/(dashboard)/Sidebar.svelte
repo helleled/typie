@@ -25,7 +25,6 @@
   import { page } from '$app/state';
   import { fragment, graphql } from '$graphql';
   import EntityTree from './@tree/EntityTree.svelte';
-  import PlanUsageWidget from './PlanUsageWidget.svelte';
   import Profile from './Profile.svelte';
   import ThemeSwitch from './ThemeSwitch.svelte';
   import type { DashboardLayout_Sidebar_site, DashboardLayout_Sidebar_user } from '$graphql';
@@ -45,7 +44,6 @@
         role
 
         ...DashboardLayout_Profile_user
-        ...DashboardLayout_PlanUsageWidget_user
       }
     `),
   );
@@ -57,7 +55,6 @@
         id
 
         ...DashboardLayout_EntityTree_site
-        ...DashboardLayout_PlanUsageWidget_site
         ...DashboardLayout_TrashModal_site
       }
     `),
@@ -472,8 +469,6 @@
         <EntityTree {$site} />
       </div>
     </div>
-
-    <PlanUsageWidget {$site} {$user} />
 
     <div
       class={flex({

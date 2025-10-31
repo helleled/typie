@@ -30,11 +30,11 @@
     try {
       const result = await graphql(
         /* GraphQL */ `
-          mutation LoginWithEmail_Mutation($email: String!, $password: String!) {
-            loginWithEmail(email: $email, password: $password)
+          mutation LoginWithEmail_Mutation($input: LoginWithEmailInput!) {
+            loginWithEmail(input: $input)
           }
         `,
-        { email, password }
+        { input: { email, password } }
       );
 
       // Store tokens locally

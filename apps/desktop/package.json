@@ -25,7 +25,8 @@
     "lint": "prettier --plugin-search-dir . --check . && eslint .",
     "format": "prettier --plugin-search-dir . --write .",
     "tauri": "tauri",
-    "test": "bun test"
+    "test": "bun test",
+    "codegen": "svelte-kit sync && sark codegen"
   },
   "devDependencies": {
     "@ctrl/tinycolor": "^4.2.0",

@@ -24,7 +24,7 @@
   import * as Y from 'yjs';
   import { PostLayoutMode, PostSyncType } from '@/enums';
   import ChevronRightIcon from '~icons/lucide/chevron-right';
-  import ElipsisIcon from '~icons/lucide/ellipsis';
+  // import ElipsisIcon from '~icons/lucide/ellipsis';
   import FolderIcon from '~icons/lucide/folder';
   import Maximize2Icon from '~icons/lucide/maximize-2';
   import XIcon from '~icons/lucide/x';

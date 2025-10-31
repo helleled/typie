@@ -3,7 +3,7 @@
   import { flex } from '@typie/styled-system/patterns';
   import { Icon, SearchableDropdown } from '@typie/ui/components';
   import { defaultValues, values } from '@typie/ui/tiptap';
-  import mixpanel from 'mixpanel-browser';
+  // import mixpanel from 'mixpanel-browser';
   import PlusIcon from '~icons/lucide/plus';
   import { fragment, graphql } from '$graphql';
   import FontUploadModal from '../../FontUploadModal.svelte';

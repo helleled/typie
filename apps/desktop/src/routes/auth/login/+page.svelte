@@ -2,16 +2,16 @@
   import { openUrl } from '@tauri-apps/plugin-opener';
   import { css } from '@typie/styled-system/css';
   import { center, flex } from '@typie/styled-system/patterns';
-  import { Button, Icon, Input, Form } from '@typie/ui/components';
+  import { Button, Form, Icon, Input } from '@typie/ui/components';
   import { serializeOAuthState } from '@typie/ui/utils';
   import qs from 'query-string';
   import GlobeIcon from '~icons/lucide/globe';
+  import { goto } from '$app/navigation';
   import Logo from '$assets/logos/logo.svg?component';
   import { PUBLIC_AUTH_URL, PUBLIC_OIDC_CLIENT_ID } from '$env/static/public';
-  import { systemInfo } from '$lib/system-info';
-  import { graphql } from '$lib/graphql';
-  import { goto } from '$app/navigation';
+  import { graphql } from '$graphql';
   import { store } from '$lib/store';
+  import { systemInfo } from '$lib/system-info';
 
   let email = '';
   let password = '';
@@ -34,7 +34,7 @@
             loginWithEmail(input: $input)
           }
         `,
-        { input: { email, password } }
+        { input: { email, password } },
       );
 
       // Store tokens locally
@@ -43,8 +43,8 @@
 
       // Redirect to main app
       goto('/');
-    } catch (err: any) {
-      error = err.message || '로그인에 실패했습니다.';
+    } catch (err: unknown) {
+      error = (err instanceof Error ? err.message : typeof err === 'string' ? err : '로그인에 실패했습니다.') || '로그인에 실패했습니다.';
     } finally {
       isLoading = false;
     }
@@ -71,23 +71,23 @@
         <div class={flex({ flexDirection: 'column', gap: '16px' })}>
           <Form.Field name="email">
             <Input
-              type="email"
-              placeholder="이메일"
-              value={email}
-              oninput={(e) => (email = e.currentTarget.value)}
               disabled={isLoading}
+              oninput={(e) => (email = e.currentTarget.value)}
+              placeholder="이메일"
               required
+              type="email"
+              value={email}
             />
           </Form.Field>
 
           <Form.Field name="password">
             <Input
-              type="password"
-              placeholder="비밀번호"
-              value={password}
-              oninput={(e) => (password = e.currentTarget.value)}
               disabled={isLoading}
+              oninput={(e) => (password = e.currentTarget.value)}
+              placeholder="비밀번호"
               required
+              type="password"
+              value={password}
             />
           </Form.Field>
 
@@ -97,7 +97,7 @@
             </div>
           {/if}
 
-          <Button type="submit" disabled={isLoading}>
+          <Button disabled={isLoading} type="submit">
             {isLoading ? '로그인 중...' : '로그인'}
           </Button>
         </div>

@@ -1,9 +1,5 @@
 <script lang="ts">
   import { Helmet } from '@typie/ui/components';
-  import CallToAction from './website/(landing)/(index)/CallToAction.svelte';
-  import Features from './website/(landing)/(index)/Features.svelte';
-  import Hero from './website/(landing)/(index)/Hero.svelte';
-  import Testimonials from './website/(landing)/(index)/Testimonials.svelte';
 </script>
 
 <Helmet
@@ -12,10 +8,11 @@
   trailing={null}
 />
 
-<Hero />
-
-<Features />
-
-<Testimonials />
-
-<CallToAction />
+<div class="flex items-center justify-center min-h-screen">
+  <div class="text-center">
+    <div class="animate-pulse">
+      <h1 class="text-2xl font-bold text-gray-900 mb-2">타이피</h1>
+      <p class="text-gray-600">로딩 중...</p>
+    </div>
+  </div>
+</div>

@@ -1,2 +1,5 @@
-// Landing page - no auth logic needed
-// Public page that doesn't require authentication
+import { redirect } from '@sveltejs/kit';
+
+export function load() {
+  throw redirect(307, '/website/');
+}

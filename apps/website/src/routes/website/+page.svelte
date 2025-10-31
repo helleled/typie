@@ -1,9 +1,9 @@
 <script lang="ts">
   import { Helmet } from '@typie/ui/components';
-  import CallToAction from './(landing)/(index)/CallToAction.svelte';
-  import Features from './(landing)/(index)/Features.svelte';
-  import Hero from './(landing)/(index)/Hero.svelte';
-  import Testimonials from './website/(landing)/(index)/Testimonials.svelte';
+  import CallToAction from './CallToAction.svelte';
+  import Features from './Features.svelte';
+  import Hero from './Hero.svelte';
+  import Testimonials from './Testimonials.svelte';
 </script>
 
 <Helmet

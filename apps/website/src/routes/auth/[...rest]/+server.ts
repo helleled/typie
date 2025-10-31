@@ -1,25 +1,10 @@
-import { env } from '$env/dynamic/private';
+import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-const handler: RequestHandler = async ({ url, request, params }) => {
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.delete('Host');
-  requestHeaders.delete('Accept-Encoding');
-
-  const response = await fetch(`${env.PRIVATE_API_URL}/auth/${params.rest}${url.search}`, {
-    method: request.method,
-    headers: requestHeaders,
-    body: request.method === 'POST' ? request.body : undefined,
-    redirect: 'manual',
-  });
-
-  const responseHeaders = new Headers(response.headers);
-
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: responseHeaders,
-  });
+// Authentication endpoints are disabled for local-only mode
+const handler: RequestHandler = async () => {
+  // Redirect to dashboard for local-only mode
+  throw redirect(302, '/website/');
 };
 
 export { handler as GET, handler as POST };

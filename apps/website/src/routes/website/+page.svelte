@@ -1,10 +1,10 @@
 <script lang="ts">
   import { Helmet } from '@typie/ui/components';
   import { graphql } from '$graphql';
-  import CallToAction from './CallToAction.svelte';
-  import Features from './Features.svelte';
-  import Hero from './Hero.svelte';
-  import Testimonials from './Testimonials.svelte';
+  import CallToAction from './(landing)/(index)/CallToAction.svelte';
+  import Features from './(landing)/(index)/Features.svelte';
+  import Hero from './(landing)/(index)/Hero.svelte';
+  import Testimonials from './(landing)/(index)/Testimonials.svelte';
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const query = graphql(`

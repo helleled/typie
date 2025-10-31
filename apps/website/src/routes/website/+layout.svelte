@@ -2,8 +2,8 @@
   import { css } from '@typie/styled-system/css';
   import { onMount } from 'svelte';
   import { afterNavigate } from '$app/navigation';
-  import Footer from './website/(landing)/Footer.svelte';
-  import Header from './website/(landing)/Header.svelte';
+  import Footer from './(landing)/Footer.svelte';
+  import Header from './(landing)/Header.svelte';
 
   let element: HTMLDivElement;
   let elements: NodeListOf<Element>;
@@ -61,7 +61,7 @@
   <Header />
 
   <div bind:this={element} class={css({ paddingTop: '96px' })}>
-    <slot />
+    {@render children()}
   </div>
 
   <Footer />

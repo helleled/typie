@@ -625,7 +625,6 @@ export const Users = sqliteTable(
     password: text('password'),
     name: text('name').notNull(),
     avatarId: text('avatar_id')
-      .notNull()
       .references(() => Images.id, { onUpdate: 'cascade', onDelete: 'restrict' }),
     role: E._UserRole('role').notNull().default('USER'),
     state: E._UserState('state').notNull().default('ACTIVE'),

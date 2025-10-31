@@ -7,6 +7,10 @@ export const reroute: Reroute = async ({ url }) => {
   } else if (url.origin === env.PUBLIC_AUTH_URL) {
     return `/auth${url.pathname}`;
   } else if (url.origin === env.PUBLIC_WEBSITE_URL) {
+    // In development mode, don't reroute root path
+    if (env.PUBLIC_ENVIRONMENT === 'local' && url.pathname === '/') {
+      return '/';
+    }
     return `/website${url.pathname}`;
   } else if (url.host === env.PUBLIC_USERSITE_HOST) {
     return `/usersite/apex${url.pathname}`;

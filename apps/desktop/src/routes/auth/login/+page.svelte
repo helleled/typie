@@ -30,24 +30,16 @@
     try {
       const result = await graphql(
         /* GraphQL */ `
-          mutation EmailLogin_Mutation($email: String!, $password: String!) {
-            emailLogin(email: $email, password: $password) {
-              user {
-                id
-                email
-                name
-              }
-              accessToken
-              refreshToken
-            }
+          mutation LoginWithEmail_Mutation($email: String!, $password: String!) {
+            loginWithEmail(email: $email, password: $password)
           }
         `,
         { email, password }
       );
 
       // Store tokens locally
-      await store.set('access_token', result.emailLogin.accessToken);
-      await store.set('refresh_token', result.emailLogin.refreshToken);
+      await store.set('access_token', result.loginWithEmail);
+      await store.set('refresh_token', result.loginWithEmail);
 
       // Redirect to main app
       goto('/');

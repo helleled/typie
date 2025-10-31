@@ -135,7 +135,6 @@
               url
             }
 
-            ...Editor_Limit_site
             ...Editor_Placeholder_site
             ...Editor_Toolbar_site
           }

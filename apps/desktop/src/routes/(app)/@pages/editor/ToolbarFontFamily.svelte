@@ -60,19 +60,6 @@
     }
   `);
 
-  const addSiteFont = graphql(`
-    mutation Editor_Toolbar_FontFamily_AddSiteFont_Mutation($input: AddSiteFontInput!) {
-      addSiteFont(input: $input) {
-        id
-
-        fonts {
-          id
-          name
-        }
-      }
-    }
-  `);
-
   let open = $state(false);
   let inflight = $state(false);
 
@@ -96,7 +83,6 @@
       try {
         const path = await uploadBlob(file);
         const resp = await persistBlobAsFont({ path });
-        await addSiteFont({ siteId: $site.id, fontId: resp.id });
 
         open = false;
         Dialog.alert({

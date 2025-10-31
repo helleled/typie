@@ -47,15 +47,7 @@
 
           subscription {
             id
-
-            plan {
-              id
-
-              rule {
-                maxTotalCharacterCount
-                maxTotalBlobSize
-              }
-            }
+            planId
           }
         }
       }
@@ -77,7 +69,7 @@
     }
   `);
 
-  const planRule = $derived($site.user.subscription?.plan?.rule ?? $query.defaultPlanRule);
+  const planRule = $derived($query.defaultPlanRule);
 
   const totalCharacterCountProgress = $derived.by(() => {
     if (planRule.maxTotalCharacterCount === -1) {

@@ -20,19 +20,6 @@
 
   let { canvas, via }: Props = $props();
 
-  const duplicateCanvas = graphql(`
-    mutation CanvasMenu_DuplicateCanvas_Mutation($input: DuplicateCanvasInput!) {
-      duplicateCanvas(input: $input) {
-        id
-
-        entity {
-          id
-          slug
-        }
-      }
-    }
-  `);
-
   const deleteCanvas = graphql(`
     mutation CanvasMenu_DeleteCanvas_Mutation($input: DeleteCanvasInput!) {
       deleteCanvas(input: $input) {
@@ -48,12 +35,6 @@
       }
     }
   `);
-
-  const handleDuplicate = async () => {
-    const resp = await duplicateCanvas({ canvasId: canvas.id });
-    mixpanel.track('duplicate_canvas', { via });
-    await goto(`/${resp.entity.slug}`);
-  };
 
   const handleDelete = () => {
     Dialog.confirm({
@@ -85,8 +66,6 @@
     <span class={css({ fontSize: '13px', fontWeight: 'medium', color: 'text.muted' })}>삭제 후 30일 동안 휴지통에 보관돼요</span>
   </div>
 {/snippet}
-
-<MenuItem icon={CopyIcon} onclick={handleDuplicate}>복제</MenuItem>
 
 <HorizontalDivider color="secondary" />
 

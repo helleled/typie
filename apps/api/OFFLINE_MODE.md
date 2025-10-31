@@ -1,80 +1,88 @@
-# Offline Mode
+# 오프라인 모드 (Offline Mode)
 
-This document describes the behavior of Typie when running in offline mode (`OFFLINE_MODE=true`).
+이 문서는 Typie가 오프라인 모드(`OFFLINE_MODE=true`)로 실행될 때의 동작을 설명합니다.
 
-## Overview
+## 🎯 개요
 
-When `OFFLINE_MODE=true`, all external service integrations are stubbed to prevent outbound network calls. The system continues to operate with deterministic fallback behaviors, ensuring development and testing can proceed without external dependencies.
+오프라인 모드에서는 모든 외부 서비스 연동이 스텁(stub) 처리되어 외부 네트워크 호출을 방지합니다. 시스템은 결정적 fallback 동작을 통해 외부 의존성 없이 개발과 테스트를 계속 진행할 수 있습니다.
 
-## Stubbed External Services
+**✅ 자동 활성화**: 개발 환경에서는 `bun run dev` 실행 시 자동으로 오프라인 모드가 활성화되며, 별도 설정이 필요 없습니다.
 
-### Authentication & SSO
-- **Apple Sign-In**: Returns error "Apple Sign-In is unavailable in offline mode"
-- **Google Sign-In**: Returns error "Google Sign-In is unavailable in offline mode"
-- **Kakao Sign-In**: Returns error "Kakao Sign-In is unavailable in offline mode"
-- **Naver Sign-In**: Returns error "Naver Sign-In is unavailable in offline mode"
+## 🚫 스텁 처리된 외부 서비스
 
-### Communications
-- **Email (AWS SES)**: Logs email content to console with `[Email Outbox]` prefix instead of sending
-- **Slack Notifications**: Logs message content to console with `[Slack Offline]` prefix instead of sending
-- **Push Notifications (Firebase)**: Logs notification details to console with `[Firebase Offline]` prefix instead of sending
+### 🔐 인증 & SSO
+- **Apple 로그인**: "Apple 로그인은 오프라인 모드에서 사용할 수 없습니다" 에러 반환
+- **Google 로그인**: "Google 로그인은 오프라인 모드에서 사용할 수 없습니다" 에러 반환
+- **Kakao 로그인**: "Kakao 로그인은 오프라인 모드에서 사용할 수 없습니다" 에러 반환
+- **Naver 로그인**: "Naver 로그인은 오프라인 모드에서 사용할 수 없습니다" 에러 반환
 
-### Payments & Subscriptions
-- **PortOne Payments**: Returns failure result with error "Payment processing is unavailable in offline mode"
-- **App Store IAP**: Returns error "App Store integration is unavailable in offline mode"
-- **Google Play IAP**: Returns error "Google Play integration is unavailable in offline mode"
+### 📢 통신
+- **이메일 (AWS SES)**: 발송 대신 `[Email Outbox]` 접두사로 콘솔에 내용 로그
+- **Slack 알림**: 발송 대신 `[Slack Offline]` 접두사로 콘솔에 메시지 로그
+- **푸시 알림 (Firebase)**: 발송 대신 `[Firebase Offline]` 접두사로 콘솔에 알림 상세 로그
 
-### Content & Features
-- **Spell Checking**: Returns empty array of suggestions, logs text length with `[Spellcheck Offline]` prefix
-- **Link Embedding (Iframely)**: Returns error "Link embedding is unavailable in offline mode"
+### 💳 결제 & 구독
+- **PortOne 결제**: "결제 처리는 오프라인 모드에서 사용할 수 없습니다" 에러와 함께 실패 반환
+- **App Store IAP**: "App Store 연동은 오프라인 모드에서 사용할 수 없습니다" 에러 반환
+- **Google Play IAP**: "Google Play 연동은 오프라인 모드에서 사용할 수 없습니다" 에러 반환
 
-### Infrastructure & Monitoring
-- **AWS Services**: 
-  - SES client is null (email already handled separately)
-  - Cost Explorer client is null (stats return 0)
-- **GitHub API**: Returns 0 commits for both total and weekly
-- **Exchange Rate API**: Returns fixed rate of 1350 KRW/USD
-- **Infrastructure Cost**: Returns 0 KRW
+### 📝 콘텐츠 & 기능
+- **맞춤법 검사**: 추천어 빈 배열 반환, `[Spellcheck Offline]` 접두사로 텍스트 길이 로그
+- **링크 임베딩 (Iframely)**: "링크 임베딩은 오프라인 모드에서 사용할 수 없습니다" 에러 반환
 
-### Storage
-- **S3 Key Generation**: Returns "offline-mode-stub-key" instead of generated unique keys
+### 🏗️ 인프라 & 모니터링
+- **AWS 서비스**: 
+  - SES 클라이언트는 null (이메일은 별도 처리됨)
+  - Cost Explorer 클라이언트는 null (통계는 0 반환)
+- **GitHub API**: 전체 및 주간 커밋 수 모두 0 반환
+- **환율 API**: 고정 환율 1,350 KRW/USD 반환
+- **인프라 비용**: 0 KRW 반환
 
-## Local Storage Implementation
+### 📁 스토리지
+- **S3 키 생성**: 고유 키 대신 "offline-mode-stub-key" 반환
 
-Files are stored locally under the following directory structure:
+## 📁 로컬 스토리지 구현
+
+파일은 다음 디렉토리 구조에 로컬로 저장됩니다:
 
 ```
 apps/api/.storage/
-├── uploads/           # Temporary upload bucket
-├── usercontent/       # Persistent user content bucket
-│   ├── files/
-│   ├── images/
-│   └── fonts/
+├── uploads/           # 임시 업로드 버킷
+├── usercontent/       # 영구 사용자 콘텐츠 버킷
+│   ├── files/         # 일반 파일
+│   ├── images/        # 이미지 파일
+│   └── fonts/         # 폰트 파일 (WOFF2)
 ```
 
-The absolute path is: `<project-root>/apps/api/.storage/`
+**절대 경로**: `<project-root>/apps/api/.storage/`
 
-## Storage Buckets
+### 🎯 자동 생성
 
-### uploads
-- **Purpose**: Temporary storage for uploaded files before processing
-- **Lifetime**: Files are moved to `usercontent` bucket after processing
-- **Access**: Used internally during file upload and processing workflows
+- `bun run dev` 실행 시 자동으로 디렉토리 생성
+- 필요한 권한 자동 설정
+- S3 호환 API 제공
 
-### usercontent
-- **Purpose**: Persistent storage for processed user content
-- **Sub-directories**:
-  - `files/`: General file uploads
-  - `images/`: Processed images with thumbnails
-  - `fonts/`: Processed fonts (WOFF2 format)
+## 📦 스토리지 버킷
 
-## File Organization
+### 📤 uploads
+- **목적**: 처리 전 업로드 파일의 임시 저장
+- **수명**: 처리 후 `usercontent` 버킷으로 이동
+- **접근**: 파일 업로드 및 처리 워크플로우 중 내부적으로 사용
 
-Each stored file has:
-1. **Object file**: The actual file content
-2. **Metadata file**: `.meta.json` sidecar with metadata and tags
+### 👤 usercontent
+- **목적**: 처리된 사용자 콘텐츠의 영구 저장
+- **하위 디렉토리**:
+  - `files/`: 일반 파일 업로드
+  - `images/`: 썸네일 포함 처리된 이미지
+  - `fonts/`: 처리된 폰트 (WOFF2 형식)
 
-Example structure:
+## 📂 파일 구성
+
+저장된 각 파일은 다음을 가집니다:
+1. **객체 파일**: 실제 파일 내용
+2. **메타데이터 파일**: 메타데이터와 태그가 있는 `.meta.json` 사이드카
+
+예시 구조:
 ```
 usercontent/
 ├── images/

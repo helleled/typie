@@ -8,7 +8,6 @@
   import { fragment, graphql } from '$graphql';
   import { SettingsCard, SettingsDivider, SettingsRow } from '$lib/components';
   import FontUploadModal from '../FontUploadModal.svelte';
-  import PlanUpgradeModal from '../PlanUpgradeModal.svelte';
   import type { DashboardLayout_PreferenceModal_FontTab_user } from '$graphql';
 
   type Props = {
@@ -41,7 +40,6 @@
   );
 
   let uploadModalOpen = $state(false);
-  let planUpgradeOpen = $state(false);
 
   const archiveFont = graphql(`
     mutation DashboardLayout_PreferenceModal_FontTab_ArchiveFont_Mutation($input: ArchiveFontInput!) {
@@ -70,11 +68,7 @@
         _hover: { backgroundColor: 'surface.muted' },
       })}
       onclick={() => {
-        if ($user.subscription) {
-          uploadModalOpen = true;
-        } else {
-          planUpgradeOpen = true;
-        }
+        uploadModalOpen = true;
       }}
       type="button"
     >
@@ -139,4 +133,3 @@
 </div>
 
 <FontUploadModal userId={$user.id} bind:open={uploadModalOpen} />
-<PlanUpgradeModal bind:open={planUpgradeOpen}>폰트 업로드 기능은 FULL ACCESS 플랜에서 사용할 수 있어요.</PlanUpgradeModal>

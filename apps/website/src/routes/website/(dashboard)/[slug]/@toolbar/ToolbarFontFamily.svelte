@@ -7,7 +7,6 @@
   import PlusIcon from '~icons/lucide/plus';
   import { fragment, graphql } from '$graphql';
   import FontUploadModal from '../../FontUploadModal.svelte';
-  import PlanUpgradeModal from '../../PlanUpgradeModal.svelte';
   import type { Editor } from '@tiptap/core';
   import type { Ref } from '@typie/ui/utils';
   import type { Editor_BottomToolbar_FontFamily_user } from '$graphql';
@@ -20,7 +19,6 @@
   let { $user: _user, editor }: Props = $props();
 
   let uploadModalOpen = $state(false);
-  let planUpgradeOpen = $state(false);
 
   const user = fragment(
     _user,
@@ -115,12 +113,7 @@
   extraItems={[
     {
       onclick: () => {
-        if ($user.subscription) {
-          uploadModalOpen = true;
-        } else {
-          planUpgradeOpen = true;
-          mixpanel.track('open_plan_upgrade_modal', { via: 'font_family_upload' });
-        }
+        uploadModalOpen = true;
       },
       content: uploadFontFamilyItem,
     },
@@ -150,4 +143,3 @@
 </SearchableDropdown>
 
 <FontUploadModal userId={$user.id} bind:open={uploadModalOpen} />
-<PlanUpgradeModal bind:open={planUpgradeOpen}>폰트 업로드 기능은 FULL ACCESS 플랜에서 사용할 수 있어요.</PlanUpgradeModal>

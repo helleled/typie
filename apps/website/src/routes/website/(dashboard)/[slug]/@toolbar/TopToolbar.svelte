@@ -281,7 +281,7 @@
     <ToolbarPanelTabButton icon={InfoIcon} label="정보" tab="info" />
     <ToolbarPanelTabButton icon={StickyNoteIcon} label="노트" tab="note" />
     <ToolbarPanelTabButton icon={BookmarkIcon} label="북마크" tab="anchors" />
-    <ToolbarPanelTabButton icon={SpellCheckIcon} label="맞춤법" needPlanUpgrade={!$site?.user.subscription} tab="spellcheck" />
+    <ToolbarPanelTabButton icon={SpellCheckIcon} label="맞춤법" tab="spellcheck" />
     <ToolbarPanelTabButton icon={ClockFadingIcon} label="타임라인" tab="timeline" />
     <ToolbarPanelTabButton icon={SettingsIcon} label="본문 설정" tab="settings" />
   </div>

@@ -17,7 +17,6 @@
   import { fragment, graphql } from '$graphql';
   import { LoadableImg, SettingsCard, SettingsDivider, SettingsRow } from '$lib/components';
   import { uploadBlobAsImage } from '$lib/utils';
-  import PlanUpgradeModal from '../PlanUpgradeModal.svelte';
   import UpdateEmailModal from './UpdateEmailModal.svelte';
   import type { DashboardLayout_PreferenceModal_ProfileTab_user } from '$graphql';
 
@@ -175,7 +174,6 @@
   };
 
   let updateEmailOpen = $state(false);
-  let planUpgradeModalOpen = $state(false);
 </script>
 
 <div class={flex({ direction: 'column', gap: '40px', maxWidth: '640px' })}>
@@ -309,9 +307,8 @@
               <div class={css({ position: 'relative' })}>
                 <TextInput
                   style={css.raw({ width: '[280px]', height: '32px', fontSize: '13px' })}
-                  disabled={!$user.subscription}
                   onblur={() => {
-                    if ($user.subscription && siteForm.state.isDirty) {
+                    if (siteForm.state.isDirty) {
                       siteForm.handleSubmit();
                     }
                   }}
@@ -334,23 +331,6 @@
                     </span>
                   {/snippet}
                 </TextInput>
-                {#if !$user.subscription}
-                  <button
-                    class={css({
-                      position: 'absolute',
-                      inset: '0',
-                      cursor: 'pointer',
-                      backgroundColor: 'transparent',
-                      border: 'none',
-                    })}
-                    aria-label="사이트 주소 기능 업그레이드"
-                    onclick={() => {
-                      planUpgradeModalOpen = true;
-                      mixpanel.track('open_plan_upgrade_modal', { via: 'site_address' });
-                    }}
-                    type="button"
-                  ></button>
-                {/if}
               </div>
             {/snippet}
             {#snippet error()}
@@ -442,4 +422,3 @@
 </div>
 
 <UpdateEmailModal email={$user.email} bind:open={updateEmailOpen} />
-<PlanUpgradeModal bind:open={planUpgradeModalOpen}>사이트 주소 기능은 FULL ACCESS 플랜에서 사용할 수 있어요.</PlanUpgradeModal>

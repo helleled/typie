@@ -5,7 +5,6 @@
   import { Icon } from '@typie/ui/components';
   import { getAppContext } from '@typie/ui/context';
   import mixpanel from 'mixpanel-browser';
-  import PlanUpgradeModal from '../../PlanUpgradeModal.svelte';
   import { getViewContext } from '../@split-view/context.svelte';
   import type { TooltipParameter } from '@typie/ui/actions';
   import type { AppPreference } from '@typie/ui/context';
@@ -16,12 +15,9 @@
     label: string;
     icon: Component;
     keys?: TooltipParameter['keys'];
-    needPlanUpgrade?: boolean;
   };
 
-  let { tab, label, icon, keys, needPlanUpgrade }: Props = $props();
-
-  let planUpgradeModalOpen = $state(false);
+  let { tab, label, icon, keys }: Props = $props();
 
   const app = getAppContext();
 
@@ -48,12 +44,6 @@
   })}
   aria-expanded={isExpanded && isTab}
   onclick={() => {
-    if (needPlanUpgrade) {
-      planUpgradeModalOpen = true;
-      mixpanel.track('open_plan_upgrade_modal', { via: 'panel_tab_button', tab });
-      return;
-    }
-
     if (isExpanded) {
       if (isTab) {
         app.preference.current.panelExpandedByViewId = {
@@ -98,5 +88,3 @@
     <span class={css({ fontSize: '11px', whiteSpace: 'nowrap' })}>{label}</span>
   {/if}
 </button>
-
-<PlanUpgradeModal bind:open={planUpgradeModalOpen}>{label} 기능은 FULL ACCESS 플랜에서 사용할 수 있어요.</PlanUpgradeModal>

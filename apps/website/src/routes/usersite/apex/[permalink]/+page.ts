@@ -9,6 +9,11 @@ export const _UsersiteApexPermalinkPage_Query_Variables: UsersiteApexPermalinkPa
 });
 
 export const _UsersiteApexPermalinkPage_Query_AfterLoad: UsersiteApexPermalinkPage_Query_AfterLoad = ({ query }) => {
+  // Skip auth redirect in development mode
+  if (env.PUBLIC_ENVIRONMENT === 'local') {
+    return;
+  }
+
   const authorizeUrl = qs.stringifyUrl({
     url: `${env.PUBLIC_AUTH_URL}/authorize`,
     query: {

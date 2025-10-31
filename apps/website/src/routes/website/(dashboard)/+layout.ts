@@ -5,6 +5,11 @@ import { env } from '$env/dynamic/public';
 import type { DashboardLayout_Query_AfterLoad } from './$graphql';
 
 export const _DashboardLayout_Query_AfterLoad: DashboardLayout_Query_AfterLoad = ({ query, event }) => {
+  // Skip authentication check in development mode
+  if (env.PUBLIC_ENVIRONMENT === 'local') {
+    return;
+  }
+
   if (!query.me) {
     redirect(
       302,

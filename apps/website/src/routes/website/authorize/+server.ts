@@ -7,6 +7,22 @@ import { env as publicEnv } from '$env/dynamic/public';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
+  // In offline mode, skip OAuth flow
+  if (publicEnv.PUBLIC_OFFLINE_MODE === 'true') {
+    const { redirect_uri } = url.searchParams.get('state') 
+      ? deserializeOAuthState(url.searchParams.get('state')!)
+      : { redirect_uri: '/' };
+
+    cookies.set('typie-af', 'true', {
+      path: '/',
+      httpOnly: false,
+      secure: !dev,
+      sameSite: 'lax',
+      expires: dayjs().add(1, 'day').toDate(),
+    });
+
+    redirect(302, redirect_uri || '/');
+  }
   const code = url.searchParams.get('code');
   const error = url.searchParams.get('error');
   const state = url.searchParams.get('state');

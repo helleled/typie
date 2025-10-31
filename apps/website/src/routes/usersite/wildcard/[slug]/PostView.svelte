@@ -193,15 +193,18 @@
   );
 
   const authorizeUrl = $derived(
-    qs.stringifyUrl({
-      url: `${env.PUBLIC_AUTH_URL}/authorize`,
-      query: {
-        client_id: env.PUBLIC_OIDC_CLIENT_ID,
-        response_type: 'code',
-        redirect_uri: `${page.url.origin}/authorize`,
-        state: serializeOAuthState({ redirect_uri: page.url.href }),
-      },
-    }),
+    // In development mode, return empty string to disable auth redirect
+    env.PUBLIC_ENVIRONMENT === 'local'
+      ? ''
+      : qs.stringifyUrl({
+          url: `${env.PUBLIC_AUTH_URL}/authorize`,
+          query: {
+            client_id: env.PUBLIC_OIDC_CLIENT_ID,
+            response_type: 'code',
+            redirect_uri: `${page.url.origin}/authorize`,
+            state: serializeOAuthState({ redirect_uri: page.url.href }),
+          },
+        }),
   );
 
   const handleVerification = async () => {

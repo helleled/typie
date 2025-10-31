@@ -11,6 +11,7 @@ import { redis } from '@/cache';
 import { db, first, firstOrThrow, Users, UserSessions } from '@/db';
 import { dev } from '@/env';
 import { publicKey } from '@/utils';
+import { UserState, UserRole } from '@/enums';
 import type { Context as HonoContext } from 'hono';
 
 type LoaderParams<Key, Result, SortKey, Nullability extends boolean, Many extends boolean> = {
@@ -124,8 +125,20 @@ export const deriveContext = async (c: ServerContext): Promise<Context> => {
           id: 'dev-session',
           userId: firstUser.id,
         };
+      } else {
+        // If no user exists in development, create a default dev user
+        const defaultDevUser = await db.insert(Users).values({
+          email: 'dev@typie.local',
+          name: 'Development User',
+          state: UserState.ACTIVE,
+          role: UserRole.USER,
+        }).returning({ id: Users.id }).then(firstOrThrow);
+        
+        ctx.session = {
+          id: 'dev-session',
+          userId: defaultDevUser.id,
+        };
       }
-      // If no user exists, leave session undefined (will require auth where needed)
     }
   } else {
     // Production mode: verify JWT token

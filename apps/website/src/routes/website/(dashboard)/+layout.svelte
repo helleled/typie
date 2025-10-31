@@ -24,7 +24,6 @@
   import TrashModal from './@trash/TrashModal.svelte';
   import CanvasDeprecationModal from './CanvasDeprecationModal.svelte';
   import CommandPalette from './CommandPalette.svelte';
-  import ReferralWelcomeModal from './ReferralWelcomeModal.svelte';
   import Shortcuts from './Shortcuts.svelte';
   import Sidebar from './Sidebar.svelte';
   import UserSurveyModal from './UserSurveyModal.svelte';
@@ -142,7 +141,6 @@
   setupDragDropContext();
   setupEditorRegistry();
 
-  let referralWelcomeModalOpen = $state(false);
   let userSurveyModalOpen = $state(false);
   let canvasDeprecationModalOpen = $state(false);
 
@@ -191,11 +189,6 @@
   });
 
   onMount(() => {
-    if ($query.me.referral && !app.preference.current.referralWelcomeModalShown) {
-      referralWelcomeModalOpen = true;
-      app.preference.current.referralWelcomeModalShown = true;
-    }
-
     const skipUntil = localStorage.getItem('surveySkipUntil');
     const shouldShowSurvey = $query.me.surveys.includes('202509_ir') && (!skipUntil || new Date(skipUntil) < new Date());
 
@@ -339,7 +332,6 @@
 <TrashModal $site={$query.me.sites[0]} />
 <Shortcuts {$query} />
 
-<ReferralWelcomeModal bind:open={referralWelcomeModalOpen} />
 <UserSurveyModal bind:open={userSurveyModalOpen} />
 <CanvasDeprecationModal bind:open={canvasDeprecationModalOpen} />
 

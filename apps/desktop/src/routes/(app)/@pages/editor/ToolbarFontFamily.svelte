@@ -12,7 +12,6 @@
   import TypeIcon from '~icons/lucide/type';
   import { fragment, graphql } from '$graphql';
   import { uploadBlob } from '$lib/utils';
-  import PlanUpgradeModal from '../PlanUpgradeModal.svelte';
   import ToolbarDropdownButton from './ToolbarDropdownButton.svelte';
   import ToolbarDropdownMenu from './ToolbarDropdownMenu.svelte';
   import ToolbarDropdownMenuItem from './ToolbarDropdownMenuItem.svelte';

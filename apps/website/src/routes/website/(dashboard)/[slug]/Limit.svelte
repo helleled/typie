@@ -5,7 +5,6 @@
   import { ySyncPluginKey } from 'y-prosemirror';
   import { textSerializers } from '@/pm/serializer';
   import { fragment, graphql } from '$graphql';
-  import PlanUpgradeModal from '../PlanUpgradeModal.svelte';
   import type { Editor } from '@tiptap/core';
   import type { Node } from '@tiptap/pm/model';
   import type { Ref } from '@typie/ui/utils';
@@ -86,8 +85,6 @@
     return Math.min(1, $site.usage.totalBlobSize / planRule.maxTotalBlobSize);
   });
 
-  let open = $state(false);
-
   const key = new PluginKey('limit');
 
   const getCharacterCount = (node: Node) => {
@@ -125,8 +122,6 @@
               const newCharacterCount = getCharacterCount(tr.doc);
 
               if (newCharacterCount > oldCharacterCount) {
-                open = true;
-
                 return false;
               }
             }
@@ -136,8 +131,6 @@
               const newBlobSize = getBlobSize(tr.doc);
 
               if (newBlobSize > oldBlobSize) {
-                open = true;
-
                 return false;
               }
             }
@@ -163,9 +156,3 @@
     });
   });
 </script>
-
-<PlanUpgradeModal bind:open>
-  현재 플랜의 최대 사용량을 초과했어요.
-  <br />
-  이어서 작성하려면 플랜을 업그레이드 해주세요.
-</PlanUpgradeModal>

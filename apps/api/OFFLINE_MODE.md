@@ -1,112 +1,156 @@
-# Offline Mode
+# Offline Mode Storage
 
-## Overview
+This document describes the local filesystem storage implementation used when running Typie in offline mode.
 
-Offline mode allows the Typie API to run without making external network requests. This is useful for local development, testing, and running the application in environments without internet access.
+## Storage Location
 
-## Configuration
+Files are stored locally under the following directory structure:
 
-Set the `OFFLINE_MODE` environment variable to control offline mode:
-
-```bash
-# Enable offline mode (default)
-OFFLINE_MODE=true
-
-# Disable offline mode (use external services)
-OFFLINE_MODE=false
+```
+apps/api/.storage/
+├── uploads/           # Temporary upload bucket
+├── usercontent/       # Persistent user content bucket
+│   ├── files/
+│   ├── images/
+│   └── fonts/
 ```
 
-## Affected Services
+The absolute path is: `<project-root>/apps/api/.storage/`
 
-When offline mode is enabled, the following external services are stubbed or disabled:
+## Storage Buckets
 
-### Email (AWS SES)
-- **Behavior**: Emails are logged to console instead of being sent
-- **Log format**: `[Email Outbox] {"subject":"...","recipient":"...","bodyLength":...}`
+### uploads
+- **Purpose**: Temporary storage for uploaded files before processing
+- **Lifetime**: Files are moved to `usercontent` bucket after processing
+- **Access**: Used internally during file upload and processing workflows
 
-### Slack
-- **Behavior**: Messages are logged to console instead of being sent
-- **Log format**: `[Slack Offline] {"channel":"...","message":"...",...}`
+### usercontent
+- **Purpose**: Persistent storage for processed user content
+- **Sub-directories**:
+  - `files/`: General file uploads
+  - `images/`: Processed images with thumbnails
+  - `fonts/`: Processed fonts (WOFF2 format)
 
-### Spellcheck
-- **Behavior**: Returns empty results instead of calling external API
-- **Log format**: `[Spellcheck Offline] Skipping check for text of length: ...`
+## File Organization
 
-### Payment Processing (PortOne)
-- **Behavior**: All payment operations return error responses
-- **Error message**: "Payment processing is unavailable in offline mode"
+Each stored file has:
+1. **Object file**: The actual file content
+2. **Metadata file**: `.meta.json` sidecar with metadata and tags
 
-### Identity Verification (PortOne)
-- **Behavior**: Returns error response
-- **Error message**: "Identity verification is unavailable in offline mode"
+Example structure:
+```
+usercontent/
+├── images/
+│   ├── abc123.jpg
+│   ├── abc123.jpg.meta.json
+│   └── def456.png
+│       └── def456.png.meta.json
+└── files/
+    ├── document.pdf
+    └── document.pdf.meta.json
+```
 
-### SSO Authentication
-All SSO providers (Google, Naver, Kakao, Apple) throw errors in offline mode:
-- **Error message**: "[Provider] Sign-In is unavailable in offline mode"
+## Metadata Format
 
-### In-App Purchase (App Store & Google Play)
-- **Behavior**: Subscription verification throws errors
-- **Error message**: "[Store] integration is unavailable in offline mode"
-
-### Push Notifications (Firebase)
-- **Behavior**: Notifications are logged to console instead of being sent
-- **Log format**: `[Firebase Offline] Push notification skipped: {"userId":"...","title":"...","body":"..."}`
-
-### Link Embedding (Iframely)
-- **Behavior**: Throws error when attempting to unfurl URLs
-- **Error message**: "Link embedding is unavailable in offline mode"
-
-### Avatar Downloads
-- **Behavior**: Falls back to randomly generated avatars instead of downloading from external URLs
-- External avatar URLs are skipped during SSO sign-up
-
-### Document Export
-- **Behavior**: External images in documents are skipped during export
-- **Log format**: `[Export Offline] Skipping external image download: ...`
-
-### AI Assistant (BMO - Anthropic/Slack)
-- **Behavior**: Skips processing of Slack mentions
-- **Log format**: `[BMO Offline] Skipping Slack/Anthropic integration for event: ...`
-
-## Frontend Integration
-
-The frontend can query the offline mode status via GraphQL:
-
-```graphql
-query {
-  systemInfo {
-    offlineMode
-  }
+Each `.meta.json` file contains:
+```json
+{
+  "contentLength": 1024,
+  "contentType": "image/jpeg",
+  "metadata": {
+    "name": "example.jpg",
+    "user-id": "user-123"
+  },
+  "tags": {
+    "UserId": "user-123",
+    "Type": "profile"
+  },
+  "contentDisposition": "inline; filename=\"example.jpg\""
 }
 ```
 
-Use this query to:
-- Hide or disable features that require external services
-- Show explanatory messages to users
-- Adjust UI based on available functionality
+## Quota Considerations
+
+### Disk Space Usage
+- **Development**: No quota enforcement (use responsibly)
+- **Production**: Consider implementing disk space monitoring
+- **Testing**: Use `cleanupStorage()` helper to reset between tests
+
+### Recommended Monitoring
+```bash
+# Check storage size
+du -sh apps/api/.storage/
+
+# Monitor during development
+watch -n 5 'du -sh apps/api/.storage/'
+```
+
+## File URLs
+
+Local storage URLs follow this pattern:
+- Without type: `http://localhost:3000/storage/<bucket>/<key>`
+- With type: `http://localhost:3000/storage/<bucket>/<type>/<key>`
+
+Examples:
+- `http://localhost:3000/storage/uploads/temp-file.pdf`
+- `http://localhost:3000/storage/usercontent/images/profile.jpg`
+
+## API Endpoints
+
+The storage router provides these endpoints:
+- `POST /storage/uploads/upload` - Upload files
+- `GET /storage/:bucket/:type/:path` - Access typed content (images, files, fonts)
+- `GET /storage/:bucket/:path` - Direct file access
+
+## Operations
+
+### Supported Operations
+- ✅ `putObject` - Store files with metadata
+- ✅ `getObject` - Retrieve files with metadata
+- ✅ `headObject` - Get file metadata without content
+- ✅ `copyObject` - Copy between buckets
+- ✅ `deleteObject` - Remove files and metadata
+- ✅ `getObjectTags` - Read object tags
+- ✅ `putObjectTags` - Update object tags
+- ✅ `setObjectAcl` - No-op (ACL not applicable locally)
+
+### Atomic Operations
+- File writes use temporary files and atomic rename
+- Metadata is written after successful file storage
+- Prevents partial/corrupted files
 
 ## Testing
 
-To verify offline mode is working correctly:
+Use the provided test utilities:
+```typescript
+import { cleanupStorage, initStorage } from '@/storage/local';
 
-1. Enable offline mode: `OFFLINE_MODE=true`
-2. Start the API server
-3. Check logs for offline mode indicators (e.g., `[Email Outbox]`, `[Slack Offline]`)
-4. Verify no external HTTP requests are made
-5. Confirm all operations that don't require external services work normally
+// Before tests
+await cleanupStorage();
+await initStorage();
 
-## Best Practices
+// After tests
+await cleanupStorage();
+```
 
-1. **Local Development**: Enable offline mode by default to avoid accidental external service usage
-2. **CI/CD**: Enable offline mode in test environments to ensure tests are isolated
-3. **Production**: Disable offline mode to enable full functionality
-4. **Monitoring**: Monitor logs for offline mode indicators to ensure proper configuration
+## Migration from S3
 
-## Re-enabling Online Mode
+When switching from S3 to local storage:
+1. No code changes required - same API interface
+2. Files are automatically stored locally
+3. URLs remain consistent
+4. Metadata and tags are preserved
 
-To re-enable external services:
+## Limitations
 
-1. Set `OFFLINE_MODE=false` in your environment
-2. Ensure all required API keys and credentials are configured
-3. Restart the API server
-4. Verify external services are functioning correctly
+### Current Limitations
+- No built-in quota enforcement
+- No file compression or optimization
+- No CDN integration
+- No cross-region replication
+
+### Future Enhancements
+- Disk space quota enforcement
+- Automatic cleanup of old uploads
+- File compression for images
+- Backup and restore utilities

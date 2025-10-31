@@ -32,7 +32,6 @@
   import { fragment, graphql } from '$graphql';
   import { unfurlEmbed, uploadBlobAsFile, uploadBlobAsImage } from '$lib/utils';
   import PostMenu from '../@context-menu/PostMenu.svelte';
-  import PlanUpgradeModal from '../PlanUpgradeModal.svelte';
   import Anchors from './@anchor/Anchors.svelte';
   import Panel from './@panel/Panel.svelte';
   import CloseSplitView from './@split-view/CloseSplitView.svelte';
@@ -133,7 +132,6 @@
             }
 
             ...Editor_Limit_site
-            ...Editor_TopToolbar_site
           }
 
           user {
@@ -236,7 +234,6 @@
 
   let clipboardData = $state<{ html: string; text?: string }>();
   let openPasteModal = $state(false);
-  let planUpgradeModalOpen = $state(false);
 
   const doc = new Y.Doc();
   let viewDoc = $state<Y.Doc>();
@@ -948,7 +945,7 @@
 
       <HorizontalDivider color="secondary" />
 
-      <TopToolbar $site={entity.site} {editor} />
+      <TopToolbar {editor} />
 
       <div class={flex({ position: 'relative', flexGrow: '1', overflowY: 'hidden' })}>
         <div class={flex({ position: 'relative', flexDirection: 'column', flexGrow: '1', overflowX: 'auto' })}>
@@ -1338,35 +1335,6 @@
               gap: '8px',
             })}
           >
-            {#if !entity.user.subscription}
-              <button
-                class={flex({
-                  alignItems: 'center',
-                  gap: '4px',
-                  height: '[31.5px]',
-                  paddingX: '8px',
-                  borderRadius: '6px',
-                  borderWidth: '1px',
-                  borderColor: 'border.brand',
-                  fontSize: '11px',
-                  fontWeight: 'semibold',
-                  color: 'text.brand',
-                  backgroundColor: 'surface.default',
-                  cursor: 'pointer',
-                  transition: 'common',
-                  _hover: { backgroundColor: 'accent.brand.subtle' },
-                })}
-                onclick={() => {
-                  planUpgradeModalOpen = true;
-                  mixpanel.track('open_plan_upgrade_modal', { via: 'editor_zen_mode' });
-                }}
-                type="button"
-              >
-                <Icon icon={CrownIcon} size={12} />
-                <span>업그레이드</span>
-              </button>
-            {/if}
-
             <button
               class={center({
                 height: '32px',
@@ -1413,9 +1381,4 @@
       }
     }
   }
-/>
-<PlanUpgradeModal bind:open={planUpgradeModalOpen}>
-  FULL ACCESS로 업그레이드하면
-  <br />
-  모든 프리미엄 기능을 무제한으로 사용할 수 있어요.
-</PlanUpgradeModal>
+    />

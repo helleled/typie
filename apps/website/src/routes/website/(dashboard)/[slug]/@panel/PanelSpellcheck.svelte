@@ -16,11 +16,9 @@
   import CircleCheckIcon from '~icons/lucide/circle-check';
   import CopyXIcon from '~icons/lucide/copy-x';
   import XIcon from '~icons/lucide/x';
-  // import { fragment, graphql } from '$graphql';
   import { getViewContext } from '../@split-view/context.svelte';
   import type { Editor } from '@tiptap/core';
   import type { Ref } from '@typie/ui/utils';
-  import type { Editor_Panel_PanelSpellcheck_user } from '$graphql';
 
   type Props = {
     editor?: Ref<Editor>;
@@ -347,7 +345,7 @@
     <div class={flex({ justifyContent: 'center', alignItems: 'center', paddingY: '40px' })}>
       <RingSpinner style={css.raw({ size: '24px', color: 'text.faint' })} />
     </div>
-  {:else if (hasChecked && checkFailed) || !$user.subscription}
+  {:else if hasChecked && checkFailed}
     <div class={flex({ flexDirection: 'column', alignItems: 'center', gap: '8px', paddingY: '40px' })}>
       <Icon style={css.raw({ color: 'text.faint' })} icon={CircleAlertIcon} size={32} />
       <div class={css({ fontSize: '16px', color: 'text.faint' })}>맞춤법 검사에 실패했습니다</div>

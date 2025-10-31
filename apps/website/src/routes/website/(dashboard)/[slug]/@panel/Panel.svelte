@@ -37,7 +37,6 @@
         id
 
         ...Editor_Panel_PanelInfo_user
-        ...Editor_Panel_PanelSpellcheck_user
       }
     `),
   );
@@ -166,7 +165,7 @@
     {/if}
 
     {#if app.preference.current.panelTabByViewId[splitViewId] === 'spellcheck'}
-      <PanelSpellcheck {$user} {editor} />
+      <PanelSpellcheck {editor} />
     {/if}
 
     {#if app.preference.current.panelTabByViewId[splitViewId] === 'timeline'}

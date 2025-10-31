@@ -34,6 +34,7 @@
   import { browser } from '$app/environment';
   import { goto } from '$app/navigation';
   import { fragment, graphql } from '$graphql';
+  import { systemInfo } from '$lib/system-info';
   import { unfurlEmbed, uploadBlobAsFile, uploadBlobAsImage } from '$lib/utils';
   import PostMenu from '../@context-menu/PostMenu.svelte';
   import Anchors from './@anchor/Anchors.svelte';
@@ -1079,7 +1080,9 @@
             })}
             onclick={() => {
               app.preference.current.zenModeEnabled = false;
-              mixpanel.track('zen_mode_disabled', { via: 'close_button' });
+              if (!$systemInfo.offlineMode) {
+                mixpanel.track('zen_mode_disabled', { via: 'close_button' });
+              }
             }}
             type="button"
             use:tooltip={{

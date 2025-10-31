@@ -16,6 +16,7 @@
   import CircleHelpIcon from '~icons/lucide/circle-help';
   import SpellCheckIcon from '~icons/lucide/spell-check';
   import { graphql } from '$graphql';
+  import { systemInfo } from '$lib/system-info';
   import PlanUpgradeModal from '../PlanUpgradeModal.svelte';
   import ToolbarButton from './ToolbarButton.svelte';
   import type { Ref } from '@typie/ui/utils';
@@ -97,7 +98,9 @@
         relativeTo: absolutePositionToRelativePosition(error.to, binding.type, binding.mapping),
       }));
 
-      mixpanel.track('spellcheck', { errors: errors.length });
+      if (!$systemInfo.offlineMode) {
+        mixpanel.track('spellcheck', { errors: errors.length });
+      }
     } catch {
       Toast.error('맞춤법 검사에 실패했습니다');
     } finally {

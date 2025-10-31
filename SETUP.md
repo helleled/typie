@@ -2,23 +2,28 @@
 
 이 가이드는 Typie 모노레포의 오프라인 우선 개발 환경을 설정하는 방법을 설명합니다.
 
-## 빠른 시작 (권장)
+## 🚀 빠른 시작 (권장)
 
 ```bash
 # 1. 의존성 설치
 bun install
 
-# 2. 개발 서버 시작
+# 2. 오프라인 모드로 모든 서비스 시작
 bun run dev
 ```
 
-**그게 전부입니다!** 별도의 데이터베이스나 Redis 서버 설정이 필요 없습니다.
+**그게 전부입니다!** 🎉 별도의 데이터베이스나 Redis 서버 설정이 필요 없습니다.
+
+### 자동으로 설정되는 것들
 
 첫 실행 시 자동으로:
-- SQLite 데이터베이스 생성 (`apps/api/data/typie.db`)
-- 데이터베이스 마이그레이션 실행
-- 초기 데이터 시딩 (플랜 정보 등)
-- 로컬 스토리지 디렉토리 생성 (`apps/api/.storage`)
+- ✅ SQLite 데이터베이스 생성 (`apps/api/data/typie.db`)
+- ✅ 데이터베이스 마이그레이션 실행
+- ✅ 초기 데이터 시딩 (플랜 정보 등)
+- ✅ 로컬 스토리지 디렉토리 생성 (`apps/api/.storage`)
+- ✅ 오프라인 모드 활성화 (외부 서비스 스텁)
+- ✅ API 서버 시작 (http://localhost:8080)
+- ✅ 웹사이트 시작 (http://localhost:5173)
 
 ## 자동 설정 스크립트
 
@@ -54,46 +59,61 @@ nvm use 22
 # https://nodejs.org
 ```
 
-## 오프라인 개발 환경
+## 🏠 오프라인 우선 개발 환경
 
-Typie는 오프라인 우선 아키텍처를 사용합니다:
+Typie는 오프라인 우선 아키텍처를 사용하여 외부 서비스 의존성을 제거했습니다:
 
-### SQLite 데이터베이스
+### 🗄️ SQLite 데이터베이스
 
 - **위치**: `apps/api/data/typie.db`
 - **특징**: 별도의 PostgreSQL 서버 불필요
 - **마이그레이션**: 첫 실행 시 자동 적용
 - **시딩**: 기본 플랜 데이터 자동 삽입
+- **백업**: `apps/api/data/typie.db` 파일 복사으로 간단
 
-### 로컬 파일 스토리지
+### 📁 로컬 파일 스토리지
 
 - **위치**: `apps/api/.storage`
 - **특징**: 별도의 S3 서버 불필요
 - **구조**: S3 호환 API 제공
 - **초기화**: 첫 실행 시 자동 생성
+- **버킷**: `uploads`, `usercontent` (files, images, fonts)
 
-### 인메모리 캐싱
+### 🚫 외부 서비스 스텁
+
+오프라인 모드에서 모든 외부 서비스는 스텁으로 동작:
+
+| 서비스 | 동작 | 로그 형식 |
+|--------|------|-----------|
+| 이메일 (SES) | 콘솔 로그 | `[Email Outbox]` |
+| 슬랙 알림 | 콘솔 로그 | `[Slack Offline]` |
+| 푸시 알림 | 콘솔 로그 | `[Firebase Offline]` |
+| OAuth 로그인 | 에러 반환 | "Unavailable in offline mode" |
+| 결제 처리 | 실패 반환 | "Unavailable in offline mode" |
+| 맞춤법 검사 | 빈 배열 | `[Spellcheck Offline]` |
+
+### 🧠 인메모리 캐싱
 
 - **특징**: 별도의 Redis 서버 불필요
 - **사용**: 개발 모드에서 메모리 기반 캐시 사용
 - **제한**: 서버 재시작 시 캐시 초기화
 
-## 개발 서버 실행
+## 🚀 개발 서버 실행
 
-### 모든 앱 실행
+### 모든 앱 실행 (권장)
 
 ```bash
 bun run dev
 ```
 
-이 명령은 다음을 시작합니다:
-- API 서버 (http://localhost:8080)
-- 웹사이트 (http://localhost:5173)
+이 명령은 다음을 자동으로 시작합니다:
+- ✅ API 서버 (http://localhost:8080) - 오프라인 모드
+- ✅ 웹사이트 (http://localhost:5173) - 자동 API 연결
 
 ### 개별 앱 실행
 
 ```bash
-# API 서버만
+# API 서버만 (오프라인 모드)
 cd apps/api
 bun run dev
 
@@ -104,7 +124,33 @@ bun run dev
 # 모바일 (Flutter)
 cd apps/mobile
 flutter run
+
+# 데스크톱 (Tauri)
+cd apps/desktop
+bun run dev
 ```
+
+### 📱 모바일 개발 설정
+
+#### 안드로이드 에뮬레이터
+```bash
+# 에뮬레이터에서 localhost 접속을 위해
+# API_URL=http://10.0.2.2:8080
+# WS_URL=ws://10.0.2.2:8080
+```
+
+#### iOS 시뮬레이터
+```bash
+# 시뮬레이터에서 localhost 접속을 위해
+# API_URL=http://localhost:8080
+# WS_URL=ws://localhost:8080
+```
+
+### 🖥️ 데스크톱 개발 설정
+
+데스크톱 앱은 자동으로 localhost API 서버에 연결됩니다:
+- 개발 모드에서는 별도 설정 불필요
+- API 서버가 실행 중이어야 함
 
 ## 데이터베이스 관리
 
@@ -227,10 +273,32 @@ REDIS_URL=redis://localhost:6379
 
 **참고**: 환경 변수를 설정하지 않으면 기본적으로 SQLite와 인메모리 캐시를 사용합니다.
 
-## 문제 해결
+## 🔧 문제 해결
 
-### 빌드 오류
+### 일반적인 오프라인 모드 문제
 
+#### 데이터베이스 관련 오류
+```bash
+# 데이터베이스 잠금 파일 제거
+rm -f apps/api/data/typie.db-shm
+rm -f apps/api/data/typie.db-wal
+
+# 데이터베이스 완전 초기화
+rm -rf apps/api/data apps/api/.storage
+bun run dev  # 자동 재생성
+```
+
+#### 파일 권한 문제
+```bash
+# 스토리지 디렉토리 권한 설정
+chmod -R 755 apps/api/.storage
+chmod -R 755 apps/api/data
+
+# 소유자 확인 (필요시)
+sudo chown -R $USER:$USER apps/api/.storage apps/api/data
+```
+
+#### 빌드 오류
 ```bash
 # node_modules 삭제 후 재설치
 rm -rf node_modules
@@ -239,20 +307,12 @@ bun install
 # 빌드 캐시 삭제
 rm -rf .turbo
 turbo run build --force
+
+# 공유 패키지 재빌드
+bun run build
 ```
 
-### 데이터베이스 오류
-
-```bash
-# 데이터베이스 초기화
-rm -rf apps/api/data
-bun run dev  # 자동 재생성
-```
-
-### 포트 충돌
-
-다른 프로세스가 포트를 사용 중인 경우:
-
+#### 포트 충돌
 ```bash
 # 포트 사용 프로세스 찾기
 lsof -i :8080  # API 서버
@@ -260,6 +320,58 @@ lsof -i :5173  # 웹사이트
 
 # 프로세스 종료
 kill -9 <PID>
+
+# 또는 다른 포트 사용
+LISTEN_PORT=8081 cd apps/api && bun run dev
+```
+
+### 📱 모바일 개발 문제
+
+#### 안드로이드 에뮬레이터 연결 오류
+```bash
+# 에뮬레이터 네트워크 확인
+adb shell ping 10.0.2.2
+
+# 방화벽 확인
+sudo ufw status
+```
+
+#### iOS 시뮬레이터 연결 오류
+```bash
+# localhost 연결 확인
+curl http://localhost:8080/health
+
+# 시뮬레이터 재시작
+xcrun simctl shutdown all
+xcrun simctl boot "iPhone 15"
+```
+
+### 🧪 테스트 환경 초기화
+
+```bash
+# 테스트 데이터 정리
+cd apps/api
+bun test -- --reset
+
+# 스토리지 정리 (테스트용)
+rm -rf apps/api/.storage/test-*
+```
+
+### 📊 상태 확인 명령어
+
+```bash
+# 개발 환경 상태 확인
+bun run check-services
+
+# 오프라인 환경 정보 보기
+bun run dev-services
+
+# 스토리지 용량 확인
+du -sh apps/api/.storage/
+watch -n 5 'du -sh apps/api/.storage/'
+
+# 데이터베이스 크기 확인
+ls -lh apps/api/data/typie.db
 ```
 
 ## 개발 워크플로우

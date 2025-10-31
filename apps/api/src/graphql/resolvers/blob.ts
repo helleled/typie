@@ -102,7 +102,7 @@ builder.mutationFields((t) => ({
     input: { filename: t.input.string() },
     resolve: async (_, { input }, ctx) => {
       const ext = path.extname(input.filename);
-      const key = `${aws.createFragmentedS3ObjectKey()}${ext}`;
+      const key = aws.createFragmentedS3ObjectKey();
 
       return {
         path: key,

@@ -40,6 +40,13 @@ builder.queryField('stats', (t) =>
       const fortyEightHoursAgo = current.subtract(48, 'hours').toISOString();
 
       const getGitStatistics = async () => {
+        if (env.OFFLINE_MODE) {
+          return {
+            totalCommits: 0,
+            weeklyCommits: 0,
+          };
+        }
+
         const oneWeekAgo = current.subtract(7, 'days');
 
         const query = `
@@ -100,6 +107,10 @@ builder.queryField('stats', (t) =>
       };
 
       const getUsdToKrwRate = async (): Promise<number> => {
+        if (env.OFFLINE_MODE) {
+          return 1350;
+        }
+
         const cacheKey = 'usd-krw-rate';
 
         const cached = await redis.get(cacheKey);
@@ -123,6 +134,15 @@ builder.queryField('stats', (t) =>
       };
 
       const getInfraCost = async () => {
+        if (env.OFFLINE_MODE) {
+          return 0;
+        }
+
+        if (!aws.costExplorer) {
+          console.warn('[Stats] Cost Explorer client not available, returning 0');
+          return 0;
+        }
+
         try {
           const command = new GetCostAndUsageCommand({
             TimePeriod: {

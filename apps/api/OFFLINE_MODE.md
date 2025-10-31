@@ -1,8 +1,45 @@
-# Offline Mode Storage
+# Offline Mode
 
-This document describes the local filesystem storage implementation used when running Typie in offline mode.
+This document describes the behavior of Typie when running in offline mode (`OFFLINE_MODE=true`).
 
-## Storage Location
+## Overview
+
+When `OFFLINE_MODE=true`, all external service integrations are stubbed to prevent outbound network calls. The system continues to operate with deterministic fallback behaviors, ensuring development and testing can proceed without external dependencies.
+
+## Stubbed External Services
+
+### Authentication & SSO
+- **Apple Sign-In**: Returns error "Apple Sign-In is unavailable in offline mode"
+- **Google Sign-In**: Returns error "Google Sign-In is unavailable in offline mode"
+- **Kakao Sign-In**: Returns error "Kakao Sign-In is unavailable in offline mode"
+- **Naver Sign-In**: Returns error "Naver Sign-In is unavailable in offline mode"
+
+### Communications
+- **Email (AWS SES)**: Logs email content to console with `[Email Outbox]` prefix instead of sending
+- **Slack Notifications**: Logs message content to console with `[Slack Offline]` prefix instead of sending
+- **Push Notifications (Firebase)**: Logs notification details to console with `[Firebase Offline]` prefix instead of sending
+
+### Payments & Subscriptions
+- **PortOne Payments**: Returns failure result with error "Payment processing is unavailable in offline mode"
+- **App Store IAP**: Returns error "App Store integration is unavailable in offline mode"
+- **Google Play IAP**: Returns error "Google Play integration is unavailable in offline mode"
+
+### Content & Features
+- **Spell Checking**: Returns empty array of suggestions, logs text length with `[Spellcheck Offline]` prefix
+- **Link Embedding (Iframely)**: Returns error "Link embedding is unavailable in offline mode"
+
+### Infrastructure & Monitoring
+- **AWS Services**: 
+  - SES client is null (email already handled separately)
+  - Cost Explorer client is null (stats return 0)
+- **GitHub API**: Returns 0 commits for both total and weekly
+- **Exchange Rate API**: Returns fixed rate of 1350 KRW/USD
+- **Infrastructure Cost**: Returns 0 KRW
+
+### Storage
+- **S3 Key Generation**: Returns "offline-mode-stub-key" instead of generated unique keys
+
+## Local Storage Implementation
 
 Files are stored locally under the following directory structure:
 

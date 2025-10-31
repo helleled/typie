@@ -16,14 +16,13 @@
   import CircleCheckIcon from '~icons/lucide/circle-check';
   import CopyXIcon from '~icons/lucide/copy-x';
   import XIcon from '~icons/lucide/x';
-  import { fragment, graphql } from '$graphql';
+  // import { fragment, graphql } from '$graphql';
   import { getViewContext } from '../@split-view/context.svelte';
   import type { Editor } from '@tiptap/core';
   import type { Ref } from '@typie/ui/utils';
   import type { Editor_Panel_PanelSpellcheck_user } from '$graphql';
 
   type Props = {
-    $user: Editor_Panel_PanelSpellcheck_user;
     editor?: Ref<Editor>;
   };
 
@@ -38,20 +37,20 @@
     explanation: string;
   };
 
-  let { $user: _user, editor }: Props = $props();
+  let { editor }: Props = $props();
 
-  const user = fragment(
-    _user,
-    graphql(`
-      fragment Editor_Panel_PanelSpellcheck_user on User {
-        id
-
-        subscription {
-          id
-        }
-      }
-    `),
-  );
+  // const user = fragment(
+//   _user,
+//   graphql(`
+//     fragment Editor_Panel_PanelSpellcheck_user on User {
+//       id
+//
+//       subscription {
+//         id
+//       }
+//     }
+//   `),
+// );
 
   const view = getViewContext();
 
@@ -239,7 +238,7 @@
   });
 
   $effect(() => {
-    if (mounted && !hasChecked && $user.subscription) {
+    if (mounted && !hasChecked) {
       // NOTE: tick 후 하지 않으면 빈 문서로 검사하는 문제가 있음
       tick().then(() => {
         runSpellcheck();

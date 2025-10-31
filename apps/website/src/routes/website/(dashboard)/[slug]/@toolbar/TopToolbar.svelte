@@ -24,7 +24,7 @@
   import StickyNoteIcon from '~icons/lucide/sticky-note';
   import TableIcon from '~icons/lucide/table';
   import HorizontalRuleIcon from '~icons/typie/horizontal-rule';
-  import { fragment, graphql } from '$graphql';
+  // import { fragment, graphql } from '$graphql';
   import ToolbarButton from './ToolbarButton.svelte';
   import ToolbarDropdownButton from './ToolbarDropdownButton.svelte';
   import ToolbarIcon from './ToolbarIcon.svelte';
@@ -35,29 +35,28 @@
   import type { Editor_TopToolbar_site, Optional } from '$graphql';
 
   type Props = {
-    $site?: Optional<Editor_TopToolbar_site>;
     editor?: Ref<Editor>;
     style?: SystemStyleObject;
   };
 
-  let { $site: _site, editor, style }: Props = $props();
+  let { editor, style }: Props = $props();
 
-  const site = fragment(
-    _site,
-    graphql(`
-      fragment Editor_TopToolbar_site on Site {
-        id
-
-        user {
-          id
-
-          subscription {
-            id
-          }
-        }
-      }
-    `),
-  );
+  // const site = fragment(
+//   _site,
+//   graphql(`
+//     fragment Editor_TopToolbar_site on Site {
+//       id
+//
+//       user {
+//         id
+//
+//         subscription {
+//           id
+//         }
+//       }
+//     }
+//   `),
+// );
 
   const app = getAppContext();
   const editorContext = getEditorContext();

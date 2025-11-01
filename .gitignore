@@ -38,9 +38,11 @@ vite.config.ts.timestamp-*
 .terraform
 .terraform.lock.hcl
 
-# Local storage
-storage/
+# Local storage (runtime directories only)
 .storage/
+
+# But allow source code in src/storage/
+!apps/api/src/storage/
 
 # SQLite database
 data/

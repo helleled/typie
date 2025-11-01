@@ -1,6 +1,14 @@
 #!/usr/bin/env node
 
-import { logger } from '@typie/lib';
+// import { logger } from '@typie/lib';
+
+// Simple logger for testing
+const logger = {
+  getChild: (name: string) => ({
+    info: (message: string, data?: any) => console.log(`[${name}] ${message}`, data || ''),
+    error: (message: string, data?: any) => console.error(`[${name}] ${message}`, data || ''),
+  }),
+};
 import { PlanId } from '@/const';
 import { db, Plans, Users, Images } from '@/db';
 import { PlanAvailability, PlanInterval, UserState, UserRole } from '@/enums';

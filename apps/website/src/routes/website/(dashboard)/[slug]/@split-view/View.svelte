@@ -6,6 +6,7 @@
   import { EntityState } from '@/enums';
   import FileXIcon from '~icons/lucide/file-x';
   import XIcon from '~icons/lucide/x';
+  import { dev } from '$app/environment';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import Logo from '$assets/logos/logo.svg?component';
@@ -102,7 +103,22 @@
   <ViewDropZone {viewElement} {viewItem} />
   {#if entity}
     {#if entity?.state === EntityState.ACTIVE}
-      {#if entity?.node.__typename === 'Post'}
+      {#if dev}
+        <div class={center({ flexDirection: 'column', gap: '20px', size: 'full', textAlign: 'center', padding: '32px' })}>
+          <Icon style={css.raw({ size: '56px', color: 'text.subtle', '& *': { strokeWidth: '[1.25px]' } })} icon={FileXIcon} />
+          <div class={flex({ flexDirection: 'column', alignItems: 'center', gap: '8px' })}>
+            <h1 class={css({ fontSize: '18px', fontWeight: 'bold', color: 'text.default' })}>에디터는 개발 모드에서 비활성화되었습니다</h1>
+            <p class={css({ fontSize: '14px', color: 'text.faint', lineHeight: '[1.6]' })}>
+              에디터 컴포넌트는 드래그 앤 드롭 기능 및 GraphQL 에러로 인해
+              <br />
+              로컬 개발 환경에서 일시적으로 비활성화되었습니다.
+              <br />
+              <br />
+              프로덕션 환경에서는 정상적으로 작동합니다.
+            </p>
+          </div>
+        </div>
+      {:else if entity?.node.__typename === 'Post'}
         <Editor {$query} {focused} slug={entity.slug} />
       {:else if entity?.node.__typename === 'Canvas'}
         <Canvas {$query} {focused} slug={entity.slug} />

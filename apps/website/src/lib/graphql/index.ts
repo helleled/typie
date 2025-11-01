@@ -61,19 +61,19 @@ export default createClient({
       : []),
   ],
   onError: (err, event) => {
-    // Skip auth redirects in development mode
+    // Handle not_found errors gracefully in all environments - log and continue instead of throwing
+    if (err instanceof TypieError && err.code === 'not_found') {
+      if (browser) {
+        console.warn('Resource not found:', err.message);
+      }
+      return;
+    }
+
+    // Skip auth redirects and error throwing in development mode
     if (env.PUBLIC_ENVIRONMENT !== 'local') {
       if (err instanceof TypieError) {
         if (err.extensions?.status === 401) {
           redirect(302, `${env.PUBLIC_AUTH_URL}/login`);
-        }
-
-        // Handle not_found errors more gracefully - log and continue instead of throwing
-        if (err.code === 'not_found') {
-          if (browser) {
-            console.warn('Resource not found:', err.message);
-          }
-          return;
         }
 
         error(err.status, {
@@ -91,14 +91,17 @@ export default createClient({
           message: err.message,
         });
       }
-    }
 
-    if (err instanceof GraphQLError) {
-      error(500, {
-        message: err.message,
-        code: err.extensions?.code as string | undefined,
-        eventId: err.extensions?.eventId as string | undefined,
-      });
+      if (err instanceof GraphQLError) {
+        error(500, {
+          message: err.message,
+          code: err.extensions?.code as string | undefined,
+          eventId: err.extensions?.eventId as string | undefined,
+        });
+      }
+    } else {
+      // In local development, just log errors instead of throwing
+      console.warn('GraphQL error in development:', err);
     }
   },
 });

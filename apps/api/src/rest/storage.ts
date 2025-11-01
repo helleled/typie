@@ -55,6 +55,8 @@ storageRouter.get('/:bucket/:type/:path{.+}', async (c) => {
         'Content-Type': object.contentType ?? 'application/octet-stream',
         'Content-Length': object.contentLength.toString(),
         'Cache-Control': 'public, max-age=31536000, immutable',
+        'Access-Control-Allow-Origin': '*',
+        'Cross-Origin-Resource-Policy': 'cross-origin',
       },
     });
   } catch {
@@ -78,6 +80,8 @@ storageRouter.get('/:bucket/:path{.+}', async (c) => {
         'Content-Type': object.contentType ?? 'application/octet-stream',
         'Content-Length': object.contentLength.toString(),
         'Cache-Control': 'public, max-age=31536000, immutable',
+        'Access-Control-Allow-Origin': '*',
+        'Cross-Origin-Resource-Policy': 'cross-origin',
       },
     });
   } catch {

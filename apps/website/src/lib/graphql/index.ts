@@ -68,6 +68,14 @@ export default createClient({
           redirect(302, `${env.PUBLIC_AUTH_URL}/login`);
         }
 
+        // Handle not_found errors more gracefully - log and continue instead of throwing
+        if (err.code === 'not_found') {
+          if (browser) {
+            console.warn('Resource not found:', err.message);
+          }
+          return;
+        }
+
         error(err.status, {
           message: err.message,
           code: err.code,

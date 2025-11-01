@@ -1,7 +1,30 @@
-import '@typie/lib/dayjs';
+// import '@typie/lib/dayjs';
 import '@/mq';
 
-import { logger } from '@typie/lib';
+import dayjs from 'dayjs';
+import 'dayjs/locale/ko';
+import duration from 'dayjs/plugin/duration.js';
+import isoWeek from 'dayjs/plugin/isoWeek.js';
+import minMax from 'dayjs/plugin/minMax.js';
+import relativeTime from 'dayjs/plugin/relativeTime.js';
+import timezone from 'dayjs/plugin/timezone.js';
+import utc from 'dayjs/plugin/utc.js';
+
+dayjs.extend(duration);
+dayjs.extend(relativeTime);
+dayjs.extend(timezone);
+dayjs.extend(utc);
+dayjs.extend(minMax);
+dayjs.extend(isoWeek);
+dayjs.locale('ko');
+
+// Temporarily create a simple logger
+const logger = {
+  getChild: (name: string) => ({
+    info: (message: string, data?: any) => console.log(`[${name}] ${message}`, data || ''),
+    error: (message: string, data?: any) => console.error(`[${name}] ${message}`, data || ''),
+  }),
+};
 import { websocket } from 'hono/bun';
 import { HTTPException } from 'hono/http-exception';
 import { app } from '@/app';

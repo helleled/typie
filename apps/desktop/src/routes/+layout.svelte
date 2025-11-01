@@ -11,8 +11,13 @@
   import { graphql } from '$graphql';
   import { SYSTEM_INFO_QUERY } from '$lib/graphql/queries';
   import { systemInfo } from '$lib/system-info';
+  import type { Snippet } from 'svelte';
 
-  let { children } = $props();
+  type Props = {
+    children: Snippet;
+  };
+
+  let { children }: Props = $props();
 
   const checkForUpdates = async () => {
     // Skip update checks in offline mode

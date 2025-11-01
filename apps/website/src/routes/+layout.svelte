@@ -4,8 +4,13 @@
   import { afterNavigate } from '$app/navigation';
   import Footer from './website/(landing)/Footer.svelte';
   import Header from './website/(landing)/Header.svelte';
+  import type { Snippet } from 'svelte';
 
-  let { children } = $props();
+  type Props = {
+    children: Snippet;
+  };
+
+  let { children }: Props = $props();
 
   let element: HTMLDivElement;
   let elements: NodeListOf<Element>;

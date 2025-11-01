@@ -110,7 +110,7 @@ export const deriveContext = async (c: ServerContext): Promise<Context> => {
   const localUser = await db
     .select({ id: Users.id })
     .from(Users)
-    .where(sql`${Users.email} = 'local@typie.app'`)
+    .where(eq(Users.email, 'local@typie.app'))
     .then(first);
 
   if (localUser) {

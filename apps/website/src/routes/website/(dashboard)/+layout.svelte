@@ -6,7 +6,7 @@
   import { setupAppContext } from '@typie/ui/context';
   import { Updater } from '@typie/ui/notification';
   import { isMobileDevice } from '@typie/ui/utils';
-  import mixpanel from 'mixpanel-browser';
+  import { mixpanel } from '$lib/analytics';
   import qs from 'query-string';
   import { onMount, untrack } from 'svelte';
   import { updated } from '$app/state';

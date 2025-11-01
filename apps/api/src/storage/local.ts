@@ -201,3 +201,10 @@ export async function putObjectTags(bucket: string, key: string, tags: Record<st
 export async function setObjectAcl(_bucket: string, _key: string, _acl: string): Promise<void> {
   // No-op for local storage
 }
+
+export function getFileUrl(bucket: string, key: string, type?: string): string {
+  if (type) {
+    return key ? `/storage/${bucket}/${type}/${key}` : `/storage/${bucket}/${type}`;
+  }
+  return key ? `/storage/${bucket}/${key}` : `/storage/${bucket}`;
+}

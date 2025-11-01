@@ -211,7 +211,10 @@
 
     isDragging = false;
     initialViewSizes = {};
-    (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    const target = e.currentTarget as HTMLElement;
+    if (target.hasPointerCapture(e.pointerId)) {
+      target.releasePointerCapture(e.pointerId);
+    }
   };
 </script>
 

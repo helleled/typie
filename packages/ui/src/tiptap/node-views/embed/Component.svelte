@@ -130,7 +130,9 @@
 
   const handleResizeEnd = (event: PointerEvent) => {
     const target = event.currentTarget as HTMLElement;
-    target.releasePointerCapture(event.pointerId);
+    if (target.hasPointerCapture(event.pointerId)) {
+      target.releasePointerCapture(event.pointerId);
+    }
     updateAttributes({ proportion });
   };
 

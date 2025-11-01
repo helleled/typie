@@ -178,10 +178,13 @@ export const patterns = {
     },
   }),
   center: definePattern({
-    properties: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
+    transform(props) {
+      return {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        ...props,
+      };
     },
   }),
 };

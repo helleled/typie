@@ -5,6 +5,8 @@
   import Footer from './website/(landing)/Footer.svelte';
   import Header from './website/(landing)/Header.svelte';
 
+  let { children } = $props();
+
   let element: HTMLDivElement;
   let elements: NodeListOf<Element>;
 
@@ -61,7 +63,7 @@
   <Header />
 
   <div bind:this={element} class={css({ paddingTop: '96px' })}>
-    <slot />
+    {@render children()}
   </div>
 
   <Footer />

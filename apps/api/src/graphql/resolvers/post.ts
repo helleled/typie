@@ -162,12 +162,12 @@ Post.implement({
       type: 'Binary',
       resolve: async (self) => {
         const content = await db
-          .select({ update: PostContents.update })
+          .select({ updateData: PostContents.updateData })
           .from(PostContents)
           .where(eq(PostContents.postId, self.id))
           .then(firstOrThrow);
 
-        return content.update;
+        return content.updateData;
       },
     }),
 
@@ -1082,12 +1082,12 @@ builder.mutationFields((t) => ({
         await enqueueJob('post:sync:collect', input.postId);
       } else if (input.type === PostSyncType.VECTOR) {
         const contents = await db
-          .select({ update: PostContents.update, vector: PostContents.vector })
+          .select({ updateData: PostContents.updateData, vector: PostContents.vector })
           .from(PostContents)
           .where(eq(PostContents.postId, input.postId))
           .then(firstOrThrow);
 
-        const update = Y.diffUpdateV2(contents.update, Uint8Array.fromBase64(input.data));
+        const update = Y.diffUpdateV2(contents.updateData, Uint8Array.fromBase64(input.data));
 
         pubsub.publish('post:sync', input.postId, {
           target: input.clientId,

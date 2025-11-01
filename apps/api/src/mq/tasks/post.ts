@@ -60,7 +60,7 @@ export const PostSyncCollectJob = defineJob('post:sync:collect', async (postId: 
     const post = await db
       .select({
         id: Posts.id,
-        update: PostContents.update,
+        updateData: PostContents.updateData,
         text: PostContents.text,
         siteId: Entities.siteId,
       })
@@ -76,7 +76,7 @@ export const PostSyncCollectJob = defineJob('post:sync:collect', async (postId: 
     );
 
     const doc = new Y.Doc({ gc: false });
-    Y.applyUpdateV2(doc, post.update);
+    Y.applyUpdateV2(doc, post.updateData);
 
     let prevCharacterCount = getCharacterCount(post.text);
     let order = 0;
@@ -189,7 +189,7 @@ export const PostSyncCollectJob = defineJob('post:sync:collect', async (postId: 
         await tx
           .update(PostContents)
           .set({
-            update: finalUpdate,
+            updateData: finalUpdate,
             vector: finalVector,
             body: sanitizedBody,
             text: sanitizedText,
@@ -232,7 +232,7 @@ export const PostSyncCollectJob = defineJob('post:sync:collect', async (postId: 
       await db
         .update(PostContents)
         .set({
-          update: finalUpdate,
+          updateData: finalUpdate,
           vector: finalVector,
         })
         .where(eq(PostContents.postId, postId));
@@ -385,13 +385,13 @@ export const PostCompactJob = defineJob('post:compact', async (postId: string) =
     }
 
     const content = await db
-      .select({ update: PostContents.update })
+      .select({ updateData: PostContents.updateData })
       .from(PostContents)
       .where(eq(PostContents.postId, postId))
       .then(firstOrThrow);
 
     const oldDoc = new Y.Doc({ gc: false });
-    Y.applyUpdateV2(oldDoc, content.update);
+    Y.applyUpdateV2(oldDoc, content.updateData);
 
     const newDoc = new Y.Doc({ gc: false });
 
@@ -504,7 +504,7 @@ export const PostCompactJob = defineJob('post:compact', async (postId: string) =
       await tx
         .update(PostContents)
         .set({
-          update: finalUpdate,
+          updateData: finalUpdate,
           vector: finalVector,
           compactedAt: dayjs(),
         })

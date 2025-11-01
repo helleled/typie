@@ -46,12 +46,12 @@ Canvas.implement({
       type: 'Binary',
       resolve: async (self) => {
         const content = await db
-          .select({ update: CanvasContents.update })
+          .select({ updateData: CanvasContents.updateData })
           .from(CanvasContents)
           .where(eq(CanvasContents.canvasId, self.id))
           .then(firstOrThrow);
 
-        return content.update;
+        return content.updateData;
       },
     }),
 
@@ -219,12 +219,12 @@ builder.mutationFields((t) => ({
         await enqueueJob('canvas:sync:collect', input.canvasId);
       } else if (input.type === CanvasSyncType.VECTOR) {
         const contents = await db
-          .select({ update: CanvasContents.update, vector: CanvasContents.vector })
+          .select({ updateData: CanvasContents.updateData, vector: CanvasContents.vector })
           .from(CanvasContents)
           .where(eq(CanvasContents.canvasId, input.canvasId))
           .then(firstOrThrow);
 
-        const update = Y.diffUpdateV2(contents.update, Uint8Array.fromBase64(input.data));
+        const update = Y.diffUpdateV2(contents.updateData, Uint8Array.fromBase64(input.data));
 
         pubsub.publish('canvas:sync', input.canvasId, {
           target: input.clientId,

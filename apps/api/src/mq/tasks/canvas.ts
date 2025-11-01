@@ -34,7 +34,7 @@ export const CanvasSyncCollectJob = defineJob('canvas:sync:collect', async (canv
     const canvas = await db
       .select({
         id: Canvases.id,
-        update: CanvasContents.update,
+        updateData: CanvasContents.updateData,
         siteId: Entities.siteId,
       })
       .from(Canvases)
@@ -49,7 +49,7 @@ export const CanvasSyncCollectJob = defineJob('canvas:sync:collect', async (canv
     );
 
     const doc = new Y.Doc({ gc: false });
-    Y.applyUpdateV2(doc, canvas.update);
+    Y.applyUpdateV2(doc, canvas.updateData);
 
     let order = 0;
 
@@ -281,13 +281,13 @@ export const CanvasCompactJob = defineJob('canvas:compact', async (canvasId: str
     }
 
     const content = await db
-      .select({ update: CanvasContents.update })
+      .select({ updateData: CanvasContents.updateData })
       .from(CanvasContents)
       .where(eq(CanvasContents.canvasId, canvasId))
       .then(firstOrThrow);
 
     const oldDoc = new Y.Doc({ gc: false });
-    Y.applyUpdateV2(oldDoc, content.update);
+    Y.applyUpdateV2(oldDoc, content.updateData);
 
     const newDoc = new Y.Doc({ gc: false });
 

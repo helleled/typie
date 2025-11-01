@@ -39,7 +39,7 @@ export const CanvasContents = sqliteTable('canvas_contents', {
     .unique()
     .references(() => Canvases.id, { onUpdate: 'cascade', onDelete: 'restrict' }),
   shapes: jsonb('shapes').notNull().$type<CanvasShape[]>(),
-  update: bytea('update').notNull(),
+  updateData: bytea('update_data').notNull(),
   vector: bytea('vector').notNull(),
   compactedAt: datetime('compacted_at')
     .notNull()
@@ -435,7 +435,7 @@ export const PostContents = sqliteTable(
     layoutMode: E._PostLayoutMode('layout_mode').notNull().default('SCROLL'),
     pageLayout: jsonb('page_layout').$type<PageLayout>(),
     note: text('note').notNull().default(''),
-    update: bytea('update').notNull(),
+    updateData: bytea('update_data').notNull(),
     vector: bytea('vector').notNull(),
     compactedAt: datetime('compacted_at')
       .notNull()

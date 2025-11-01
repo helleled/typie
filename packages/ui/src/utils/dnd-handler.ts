@@ -94,55 +94,79 @@ export const createDndHandler = (node: HTMLElement, options: DndHandlerOptions) 
   let hoveredTarget: HTMLElement | null = null;
 
   const updateCursor = (e: PointerEvent | null) => {
-    if (dragging) {
-      document.body.style.cursor = 'grabbing';
-      return;
-    }
-
-    document.body.style.cursor = '';
-
-    if (getDragTarget) {
-      const target = e ? getDragTarget(e) : null;
-
-      if (hoveredTarget && hoveredTarget !== target && hoveredTarget.isConnected) {
-        hoveredTarget.style.cursor = '';
+    try {
+      if (dragging) {
+        document.body.style.cursor = 'grabbing';
+        return;
       }
-      if (target?.isConnected) {
-        target.style.cursor = 'grab';
+
+      document.body.style.cursor = '';
+
+      if (getDragTarget) {
+        const target = e ? getDragTarget(e) : null;
+
+        if (hoveredTarget && hoveredTarget !== target && hoveredTarget?.isConnected) {
+          hoveredTarget.style.cursor = '';
+        }
+        if (target?.isConnected) {
+          target.style.cursor = 'grab';
+        }
+        hoveredTarget = target;
+      } else {
+        if (node?.isConnected) {
+          node.style.cursor = 'grab';
+        }
       }
-      hoveredTarget = target;
-    } else {
-      node.style.cursor = 'grab';
+    } catch {
+      // Ignore errors if cursor update fails
     }
   };
 
   const cleanup = () => {
     if (ghost) {
-      removeGhost(ghost);
+      try {
+        removeGhost(ghost);
+      } catch {
+        // Ignore errors if ghost removal fails
+      }
       ghost = null;
     }
-    if (capturedPointerId !== null && node.isConnected) {
+    if (capturedPointerId !== null) {
       try {
-        node.releasePointerCapture(capturedPointerId);
+        if (node?.isConnected) {
+          node.releasePointerCapture(capturedPointerId);
+        }
       } catch {
         // Ignore errors if pointer capture release fails
       }
       capturedPointerId = null;
     }
     if (animationFrameId) {
-      cancelAnimationFrame(animationFrameId);
+      try {
+        cancelAnimationFrame(animationFrameId);
+      } catch {
+        // Ignore errors if animation frame cancellation fails
+      }
       animationFrameId = null;
     }
     if (hoveredTarget) {
-      if (hoveredTarget.isConnected) {
-        hoveredTarget.style.cursor = '';
+      try {
+        if (hoveredTarget?.isConnected) {
+          hoveredTarget.style.cursor = '';
+        }
+      } catch {
+        // Ignore errors if cursor reset fails
       }
       hoveredTarget = null;
     }
     dragging = false;
     isDragActive = false;
     dragTarget = null;
-    updateCursor(null);
+    try {
+      updateCursor(null);
+    } catch {
+      // Ignore errors if cursor update fails
+    }
   };
 
   const handlePointerCancel = () => {
@@ -252,11 +276,17 @@ export const createDndHandler = (node: HTMLElement, options: DndHandlerOptions) 
     }),
     destroy: () => {
       cleanup();
-      node.removeEventListener('pointercancel', handlePointerCancel);
-      node.removeEventListener('pointerdown', handlePointerDown);
-      node.removeEventListener('pointermove', handlePointerMove);
-      node.removeEventListener('pointerup', handlePointerUp);
-      window.removeEventListener('keydown', handleKeyDown);
+      try {
+        if (node?.isConnected) {
+          node.removeEventListener('pointercancel', handlePointerCancel);
+          node.removeEventListener('pointerdown', handlePointerDown);
+          node.removeEventListener('pointermove', handlePointerMove);
+          node.removeEventListener('pointerup', handlePointerUp);
+        }
+        window.removeEventListener('keydown', handleKeyDown);
+      } catch {
+        // Ignore errors if event listener removal fails
+      }
     },
   };
 };

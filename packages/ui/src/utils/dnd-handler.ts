@@ -121,8 +121,12 @@ export const createDndHandler = (node: HTMLElement, options: DndHandlerOptions) 
       removeGhost(ghost);
       ghost = null;
     }
-    if (capturedPointerId !== null) {
-      node.releasePointerCapture(capturedPointerId);
+    if (capturedPointerId !== null && node.isConnected) {
+      try {
+        node.releasePointerCapture(capturedPointerId);
+      } catch {
+        // Ignore errors if pointer capture release fails
+      }
       capturedPointerId = null;
     }
     if (animationFrameId) {
@@ -172,8 +176,12 @@ export const createDndHandler = (node: HTMLElement, options: DndHandlerOptions) 
     dragStartEvent = e;
     dragTarget = extractedTarget;
 
-    node.setPointerCapture(e.pointerId);
-    capturedPointerId = e.pointerId;
+    try {
+      node.setPointerCapture(e.pointerId);
+      capturedPointerId = e.pointerId;
+    } catch {
+      // Ignore errors if pointer capture fails
+    }
 
     updateCursor(e);
   };

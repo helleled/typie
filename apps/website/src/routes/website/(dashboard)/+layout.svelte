@@ -27,8 +27,13 @@
   import Shortcuts from './Shortcuts.svelte';
   import Sidebar from './Sidebar.svelte';
   import UserSurveyModal from './UserSurveyModal.svelte';
+  import type { Snippet } from 'svelte';
 
-  let { children } = $props();
+  type Props = {
+    children: Snippet;
+  };
+
+  let { children }: Props = $props();
 
   const query = graphql(`
     query DashboardLayout_Query {

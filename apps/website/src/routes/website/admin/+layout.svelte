@@ -8,8 +8,13 @@
   import { page } from '$app/state';
   import { graphql } from '$graphql';
   import { AdminIcon, AdminImpersonateBanner } from '$lib/components/admin';
+  import type { Snippet } from 'svelte';
 
-  let { children } = $props();
+  type Props = {
+    children: Snippet;
+  };
+
+  let { children }: Props = $props();
 
   const query = graphql(`
     query AdminLayout_Query {
